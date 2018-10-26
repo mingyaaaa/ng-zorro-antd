@@ -1,14 +1,19 @@
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, Injector, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { fakeAsync, tick, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { NzMeasureScrollbarService } from '../core/services/nz-measure-scrollbar.service';
+import en_US from '../i18n/languages/en_US';
+import { NzI18nService } from '../i18n/nz-i18n.service';
 import { NzTableComponent } from './nz-table.component';
 import { NzTableModule } from './nz-table.module';
 
 describe('nz-table', () => {
+  let injector: Injector;
   beforeEach(fakeAsync(() => {
-    TestBed.configureTestingModule({
+    injector = TestBed.configureTestingModule({
       imports     : [ NzTableModule ],
-      declarations: [ NzTestTableBasicComponent, NzTestTableScrollComponent ]
+      declarations: [ NzTestTableBasicComponent, NzTestTableScrollComponent ],
+      providers   : [ NzMeasureScrollbarService ]
     });
     TestBed.compileComponents();
   }));
@@ -116,6 +121,13 @@ describe('nz-table', () => {
       fixture.detectChanges();
       expect(console.warn).toHaveBeenCalledTimes(1);
     });
+    it('should pagination simple work', () => {
+      fixture.detectChanges();
+      expect(table.nativeElement.querySelector('.ant-pagination-simple')).toBeNull();
+      testComponent.simple = true;
+      fixture.detectChanges();
+      expect(table.nativeElement.querySelector('.ant-pagination-simple')).toBeDefined();
+    });
     it('should pagination work', () => {
       fixture.detectChanges();
       expect(table.nativeElement.querySelector('.ant-pagination')).toBeDefined();
@@ -190,6 +202,22 @@ describe('nz-table', () => {
       expect(table.nativeElement.querySelector('.ant-pagination-options-quick-jumper')).toBeDefined();
       expect(table.nativeElement.querySelector('.ant-pagination-options-size-changer')).toBeDefined();
     });
+    it('should hideOnSinglePage work', () => {
+      fixture.detectChanges();
+      expect(table.nativeElement.querySelector('.ant-pagination')).not.toBe(null);
+      testComponent.hideOnSinglePage = true;
+      testComponent.dataSet = [ {} ];
+      fixture.detectChanges();
+      expect(table.nativeElement.querySelector('.ant-pagination')).toBe(null);
+    });
+    it('#18n', () => {
+      testComponent.dataSet = [];
+      fixture.detectChanges();
+      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText).toBe('暂无数据');
+      injector.get(NzI18nService).setLocale(en_US);
+      fixture.detectChanges();
+      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText).toBe(en_US.Table.emptyText);
+    });
   });
   describe('scroll nz-table', () => {
     let fixture;
@@ -203,8 +231,6 @@ describe('nz-table', () => {
     });
     it('should scroll body work', () => {
       fixture.detectChanges();
-      table.nativeElement.querySelector('.ant-spin-container').removeAttribute('hidden');
-      expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-scroll-position-left');
       const event = { ...new MouseEvent('scroll') };
       const mouseEvent = event as MouseEvent;
       const tableBody = table.nativeElement.querySelector('.ant-table-body');
@@ -220,8 +246,6 @@ describe('nz-table', () => {
     });
     it('should scroll body back to zero work', () => {
       fixture.detectChanges();
-      table.nativeElement.querySelector('.ant-spin-container').removeAttribute('hidden');
-      expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-scroll-position-left');
       const event = { ...new MouseEvent('scroll') };
       const mouseEvent = event as MouseEvent;
       const tableBody = table.nativeElement.querySelector('.ant-table-body');
@@ -245,7 +269,7 @@ describe('nz-table', () => {
     });
     it('should scroll header work', () => {
       fixture.detectChanges();
-      table.nativeElement.querySelector('.ant-spin-container').removeAttribute('hidden');
+      table.nativeElement.querySelector('.ant-spin-container').style.display = '';
       const tableHeader = table.nativeElement.querySelector('.ant-table-header');
       tableHeader.scrollLeft = 100;
       fixture.detectChanges();
@@ -260,9 +284,7 @@ describe('nz-table', () => {
     });
     it('should scroll to right class right', () => {
       fixture.detectChanges();
-      table.nativeElement.querySelector('.ant-spin-container').removeAttribute('hidden');
       const tableBody = table.nativeElement.querySelector('.ant-table-body');
-      expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-scroll-position-left');
       tableBody.scrollLeft = tableBody.scrollWidth - tableBody.clientWidth;
       fixture.detectChanges();
       const event = { ...new MouseEvent('scroll') };
@@ -275,9 +297,6 @@ describe('nz-table', () => {
     });
     it('should change width affect scroll', () => {
       fixture.detectChanges();
-      table.nativeElement.querySelector('.ant-spin-container').removeAttribute('hidden');
-      fixture.detectChanges();
-      expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-scroll-position-left');
       testComponent.width = 1000;
       window.dispatchEvent(new Event('resize'));
       fixture.detectChanges();
@@ -301,7 +320,9 @@ describe('nz-table', () => {
       [nzBordered]="bordered"
       [nzLoading]="loading"
       [nzShowSizeChanger]="showSizeChanger"
+      [nzSimple]="simple"
       [nzShowQuickJumper]="showQuickJumper"
+      [nzHideOnSinglePage]="hideOnSinglePage"
       [nzWidthConfig]="widthConfig"
       [nzShowPagination]="pagination"
       [nzFrontPagination]="pagination"
@@ -343,6 +364,7 @@ export class NzTestTableBasicComponent implements OnInit {
   noResult = '';
   showSizeChanger = false;
   showQuickJumper = false;
+  hideOnSinglePage = false;
   bordered = false;
   loading = false;
   pagination = true;
@@ -350,6 +372,7 @@ export class NzTestTableBasicComponent implements OnInit {
   title = true;
   footer = true;
   fixHeader = false;
+  simple = false;
   size = 'small';
   widthConfig = [];
 

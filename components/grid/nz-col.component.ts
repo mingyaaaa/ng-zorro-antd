@@ -29,12 +29,10 @@ export interface EmbeddedProperty {
   selector           : 'nz-col',
   providers          : [ NzUpdateHostClassService ],
   preserveWhitespaces: false,
-  template           : `
-    <ng-content></ng-content>
-  `
+  templateUrl        : './nz-col.component.html'
 })
 export class NzColComponent implements OnInit, OnChanges {
-  private el: HTMLElement;
+  private el: HTMLElement = this.elementRef.nativeElement;
   private prefixCls = 'ant-col';
 
   @HostBinding('style.padding-left.px')
@@ -97,12 +95,11 @@ export class NzColComponent implements OnInit, OnChanges {
     return this.nzRowComponent || this.nzRowDirective;
   }
 
-  ngOnChanges(changes: { [propertyName: string]: SimpleChange }): void {
+  ngOnChanges(changes: { [ propertyName: string ]: SimpleChange }): void {
     this.setClassMap();
   }
 
   constructor(private nzUpdateHostClassService: NzUpdateHostClassService, private elementRef: ElementRef, @Optional() @Host() public nzRowComponent: NzRowComponent, @Optional() @Host() public nzRowDirective: NzRowDirective, private renderer: Renderer2) {
-    this.el = this.elementRef.nativeElement;
   }
 
   ngOnInit(): void {

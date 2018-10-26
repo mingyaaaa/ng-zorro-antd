@@ -2,6 +2,8 @@ import { Component, DebugElement, TemplateRef, ViewChild } from '@angular/core';
 import { fakeAsync, tick, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
+import { NzIconModule } from '../icon/nz-icon.module';
+
 import { NzListModule } from './nz-list.module';
 
 describe('list', () => {
@@ -10,7 +12,7 @@ describe('list', () => {
   let dl: DebugElement;
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ NzListModule ],
+      imports: [ NzListModule, NzIconModule ],
       declarations: [ TestListComponent, TestListWithTemplateComponent, TestListItemComponent ]
     }).compileComponents();
     fixture = TestBed.createComponent(TestListComponent);
@@ -105,6 +107,13 @@ describe('list', () => {
           expect(dl.query(By.css('.ant-list-loading')) != null).toBe(value);
         });
       }
+
+      it('should be minimum area block when data is empty', () => {
+        context.nzLoading = true;
+        context.data = [];
+        fixture.detectChanges();
+        expect(dl.query(By.css('.ant-spin-nested-loading'))).not.toBeNull();
+      });
     });
 
     it('#nzDataSource', () => {
@@ -235,7 +244,7 @@ class TestListWithTemplateComponent {
   template: `
   <nz-list id="item-string">
     <nz-list-item [nzContent]="'content'" [nzActions]="[action]" [nzExtra]="extra">
-      <ng-template #action><i class="anticon anticon-star-o" style="margin-right: 8px;"></i> 156</ng-template>
+      <ng-template #action><i nz-icon type="star-o" style="margin-right: 8px;"></i> 156</ng-template>
       <ng-template #extra>
         <img width="272" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png">
       </ng-template>

@@ -1,7 +1,6 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CdkConnectedOverlay, ConnectedOverlayPositionChange, ConnectionPositionPair } from '@angular/cdk/overlay';
 import {
-  AfterContentInit,
   ChangeDetectorRef,
   Component,
   ContentChildren,
@@ -18,12 +17,9 @@ import {
   SkipSelf,
   ViewChild
 } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
-import { auditTime } from 'rxjs/operators/auditTime';
-import { combineLatest } from 'rxjs/operators/combineLatest';
-import { map } from 'rxjs/operators/map';
+
+import { combineLatest, BehaviorSubject, Subject } from 'rxjs';
+import { auditTime, map, takeUntil } from 'rxjs/operators';
 
 import { POSITION_MAP } from '../core/overlay/overlay-position-map';
 import { toBoolean } from '../core/util/convert';
@@ -71,67 +67,9 @@ import { NzMenuDirective } from './nz-menu.directive';
       ])
     ])
   ],
-  template           : `
-    <div
-      #trigger
-      cdkOverlayOrigin
-      #origin="cdkOverlayOrigin"
-      [class.ant-dropdown-menu-submenu-title]="isInDropDown"
-      [class.ant-menu-submenu-title]="!isInDropDown"
-      (mouseenter)="onMouseEnterEvent($event)"
-      (mouseleave)="onMouseLeaveEvent($event)"
-      (click)="clickSubMenuTitle($event)"
-      [style.paddingLeft.px]="(nzMenuDirective.nzMode === 'inline')?(level*nzMenuDirective.nzInlineIndent):null">
-      <ng-content select="[title]"></ng-content>
-      <i [class.ant-dropdown-menu-submenu-arrow]="isInDropDown" [class.ant-menu-submenu-arrow]="!isInDropDown"></i>
-    </div>
-    <ul
-      [class.ant-dropdown-menu]="isInDropDown"
-      [@expandAnimation]="expandState"
-      [class.ant-menu]="!isInDropDown"
-      [class.ant-dropdown-menu-vertical]="isInDropDown"
-      [class.ant-menu-inline]="!isInDropDown"
-      [class.ant-dropdown-menu-sub]="isInDropDown"
-      [class.ant-menu-sub]="!isInDropDown"
-      (mouseleave)="onMouseLeaveEvent($event)"
-      (mouseenter)="onMouseEnterEvent($event)"
-      *ngIf="(nzMenuDirective.nzMode=='inline')">
-      <ng-template [ngTemplateOutlet]="subMenuTemplate"></ng-template>
-    </ul>
-    <ng-template
-      cdkConnectedOverlay
-      [cdkConnectedOverlayPositions]="overlayPositions"
-      [cdkConnectedOverlayOrigin]="origin"
-      [cdkConnectedOverlayWidth]="triggerWidth"
-      (positionChange)="onPositionChange($event)"
-      [cdkConnectedOverlayOpen]="nzOpen&&(nzMenuDirective.nzMode!='inline')">
-      <div
-        class="ant-menu-submenu ant-menu-submenu-popup"
-        [class.ant-menu-light]="nzMenuDirective.nzTheme=='light'"
-        [class.ant-menu-dark]="nzMenuDirective.nzTheme=='dark'"
-        [class.ant-menu-submenu-placement-bottomLeft]="subMenuMode=='horizontal'"
-        [class.ant-menu-submenu-placement-rightTop]="(subMenuMode=='vertical')&&(placement=='rightTop')"
-        [class.ant-menu-submenu-placement-leftTop]="(subMenuMode=='vertical')&&(placement=='leftTop')"
-        [@expandAnimation]="expandState">
-        <ul
-          [class.ant-dropdown-menu]="isInDropDown"
-          [class.ant-menu]="!isInDropDown"
-          [class.ant-dropdown-menu-vertical]="isInDropDown"
-          [class.ant-menu-vertical]="!isInDropDown"
-          [class.ant-dropdown-menu-sub]="isInDropDown"
-          [class.ant-menu-sub]="!isInDropDown"
-          (mouseleave)="onMouseLeaveEvent($event)"
-          (mouseenter)="onMouseEnterEvent($event)">
-          <ng-template [ngTemplateOutlet]="subMenuTemplate"></ng-template>
-        </ul>
-      </div>
-    </ng-template>
-    <ng-template #subMenuTemplate>
-      <ng-content></ng-content>
-    </ng-template>
-  `,
+  templateUrl        : './nz-submenu.component.html',
   styles             : [
-      `
+    `
       .ant-menu-submenu-placement-bottomLeft {
         top: 6px;
         position: relative;
@@ -150,12 +88,13 @@ import { NzMenuDirective } from './nz-menu.directive';
   ]
 })
 
-export class NzSubMenuComponent implements OnInit, OnDestroy, AfterContentInit {
+export class NzSubMenuComponent implements OnInit, OnDestroy {
   private _open = false;
   private _disabled = false;
   private $mouseSubject = new Subject<boolean>();
-  private openSubscription: Subscription;
-  private placement = 'rightTop';
+  private unsubscribe$ = new Subject<void>();
+
+  placement = 'rightTop';
   $subOpen = new BehaviorSubject<boolean>(false);
   isInDropDown = false;
   isInSubMenu = false;
@@ -359,31 +298,21 @@ export class NzSubMenuComponent implements OnInit, OnDestroy, AfterContentInit {
   }
 
   constructor(public nzMenuDirective: NzMenuDirective, private cd: ChangeDetectorRef, @SkipSelf() @Optional() private nzSubMenuComponent: NzSubMenuComponent, @Host() @Optional() private nzDropDownComponent: NzDropDownComponent, @Host() @Optional() private nzDropDownButtonComponent: NzDropDownButtonComponent) {
-    this.nzMenuDirective.setHasSubMenu(true);
-    this.nzMenuDirective.subMenus.push(this);
   }
 
   ngOnInit(): void {
-    const $combineAll = this.$mouseSubject.asObservable().pipe(combineLatest(this.$subOpen), map(value => value[ 0 ] || value[ 1 ]), auditTime(150));
-    this.openSubscription = $combineAll.subscribe(this.handleOpenEvent);
+    if (this.nzSubMenuComponent) {
+      this.level = this.nzSubMenuComponent.level + 1;
+      this.isInSubMenu = true;
+    }
+    this.nzMenuDirective.subMenus.push(this);
+    const $combineAll = combineLatest(this.$subOpen, this.$mouseSubject.asObservable()).pipe(map(value => value[ 0 ] || value[ 1 ]), auditTime(150));
+    $combineAll.pipe(takeUntil(this.unsubscribe$)).subscribe(this.handleOpenEvent);
     this.isInDropDown = this.nzMenuDirective.nzInDropDown;
   }
 
-  ngAfterContentInit(): void {
-    if (this.subMenus && this.subMenus.length) {
-      this.subMenus.filter(x => x !== this).forEach(menu => {
-        if (this.subMenuMode === 'inline') {
-          menu.level = this.level + 1;
-        }
-        menu.isInSubMenu = true;
-      });
-    }
-  }
-
   ngOnDestroy(): void {
-    if (this.openSubscription) {
-      this.openSubscription.unsubscribe();
-      this.openSubscription = null;
-    }
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
 }

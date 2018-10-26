@@ -9,10 +9,8 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
-import { debounceTime } from 'rxjs/operators/debounceTime';
-import { first } from 'rxjs/operators/first';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 import { isEmpty, isNotNil } from '../core/util/check';
 import { toBoolean } from '../core/util/convert';
@@ -21,46 +19,17 @@ import { toBoolean } from '../core/util/convert';
   selector           : 'nz-spin',
   preserveWhitespaces: false,
   changeDetection    : ChangeDetectionStrategy.OnPush,
-  template           : `
-    <ng-template #defaultIndicatorTemplate>
-      <span
-        class="ant-spin-dot"
-        [class.ant-spin-dot-spin]="resultSpinning$|async">
-        <i></i><i></i><i></i><i></i>
-      </span>
-    </ng-template>
-    <div [class.ant-spin-nested-loading]="isNested">
-      <div>
-        <div
-          class="ant-spin"
-          [class.ant-spin-spinning]="resultSpinning$|async"
-          [class.ant-spin-lg]="nzSize=='large'"
-          [class.ant-spin-sm]="nzSize=='small'"
-          [class.ant-spin-show-text]="nzTip">
-          <ng-template [ngTemplateOutlet]="nzIndicator||defaultIndicatorTemplate"></ng-template>
-          <div class="ant-spin-text" *ngIf="nzTip">{{ nzTip }}</div>
-        </div>
-      </div>
-      <div
-        #containerElement
-        class="ant-spin-container"
-        [class.ant-spin-blur]="resultSpinning$|async"
-        [hidden]="!isNested"
-        (cdkObserveContent)="checkNested()">
-        <ng-content></ng-content>
-      </div>
-    </div>
-
-  `
+  templateUrl        : './nz-spin.component.html'
 })
 export class NzSpinComponent implements AfterViewInit {
   private _tip: string;
   private _delay = 0;
-  el: HTMLElement;
-  isNested = false;
+  el: HTMLElement = this.elementRef.nativeElement;
+
   baseSpinning$ = new BehaviorSubject(true);
   resultSpinning$: Observable<boolean> = this.baseSpinning$.asObservable().pipe(debounceTime(this.nzDelay));
   @ViewChild('containerElement') containerElement: ElementRef;
+  @ViewChild('nestedElement') nestedElement: ElementRef;
   @Input() nzIndicator: TemplateRef<void>;
   @Input() nzSize = 'default';
 
@@ -91,23 +60,25 @@ export class NzSpinComponent implements AfterViewInit {
   }
 
   checkNested(): void {
+    const containerElement = this.containerElement.nativeElement;
+    const nestedElement = this.nestedElement.nativeElement;
     /** no way to detect empty https://github.com/angular/angular/issues/12530 **/
-    if (!isEmpty(this.containerElement.nativeElement)) {
-      this.isNested = true;
+    /** https://github.com/angular/material2/issues/11280 **/
+    if (!isEmpty(containerElement)) {
+      this.renderer.removeStyle(containerElement, 'display');
       this.renderer.setStyle(this.el, 'display', 'block');
+      this.renderer.addClass(nestedElement, 'ant-spin-nested-loading');
     } else {
-      this.isNested = false;
+      this.renderer.setStyle(containerElement, 'display', 'none');
       this.renderer.removeStyle(this.el, 'display');
+      this.renderer.removeClass(nestedElement, 'ant-spin-nested-loading');
     }
   }
 
   constructor(private elementRef: ElementRef, private renderer: Renderer2, private zone: NgZone) {
-    this.el = this.elementRef.nativeElement;
   }
 
   ngAfterViewInit(): void {
-    this.zone.onStable.pipe(first()).subscribe(() => {
-      this.checkNested();
-    });
+    this.checkNested();
   }
 }

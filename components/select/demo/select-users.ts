@@ -1,10 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
-import { debounceTime } from 'rxjs/operators/debounceTime';
-import { map } from 'rxjs/operators/map';
-import { switchMap } from 'rxjs/operators/switchMap';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'nz-demo-select-select-users',
@@ -14,7 +11,7 @@ import { switchMap } from 'rxjs/operators/switchMap';
         <nz-option *ngIf="!isLoading" [nzValue]="o" [nzLabel]="o"></nz-option>
       </ng-container>
       <nz-option *ngIf="isLoading" nzDisabled nzCustomContent>
-        <i class="anticon anticon-loading anticon-spin loading-icon"></i> Loading Data...
+        <i nz-icon type="loading" class="loading-icon"></i> Loading Data...
       </nz-option>
     </nz-select>
   `,

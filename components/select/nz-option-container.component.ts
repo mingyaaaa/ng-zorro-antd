@@ -8,83 +8,18 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
+import { isNotNil } from '../core/util/check';
 import { NzOptionGroupComponent } from './nz-option-group.component';
 import { NzOptionComponent } from './nz-option.component';
 
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
-import { merge } from 'rxjs/operators/merge';
+import { merge, Subject, Subscription } from 'rxjs';
 import { NzOptionLiComponent } from './nz-option-li.component';
 import { defaultFilterOption, NzOptionPipe, TFilterOption } from './nz-option.pipe';
 
 @Component({
   selector           : '[nz-option-container]',
   preserveWhitespaces: false,
-  template           : `
-    <ul
-      #dropdownUl
-      class="ant-select-dropdown-menu ant-select-dropdown-menu-root ant-select-dropdown-menu-vertical"
-      role="menu"
-      (keydown)="onKeyDownUl($event)"
-      (scroll)="dropDownScroll($event,dropdownUl)"
-      tabindex="0">
-      <li
-        *ngIf="isNotFoundDisplay"
-        nz-select-unselectable
-        class="ant-select-dropdown-menu-item ant-select-dropdown-menu-item-disabled">
-        {{ nzNotFoundContent ? nzNotFoundContent : ('Select.notFoundContent' | nzI18n) }}
-      </li>
-      <li
-        *ngIf="isAddTagOptionDisplay"
-        nz-select-unselectable
-        (click)="addTagOption()"
-        class="ant-select-dropdown-menu-item ant-select-dropdown-menu-item-active">
-        {{ nzSearchValue }}
-      </li>
-      <li
-        nz-option-li
-        [compareWith]="compareWith"
-        *ngFor="let option of listOfNzOptionComponent | nzFilterOptionPipe : nzSearchValue : nzFilterOption : nzServerSearch "
-        (click)="clickOption(option,false)"
-        [nzActiveOption]="activatedOption"
-        [nzOption]="option"
-        [nzListOfSelectedValue]="nzListOfSelectedValue">
-      </li>
-      <li
-        *ngFor="let group of listOfNzOptionGroupComponent | nzSubFilterOptionPipe : nzSearchValue : nzFilterOption : nzServerSearch"
-        class="ant-select-dropdown-menu-item-group">
-        <div
-          class="ant-select-dropdown-menu-item-group-title"
-          [attr.title]="group.isLabelString ? group.nzLabel : ''">
-          <ng-container *ngIf="group.isLabelString; else labelTemplate">{{ group.nzLabel }}</ng-container>
-          <ng-template #labelTemplate>
-            <ng-template [ngTemplateOutlet]="group.nzLabel"></ng-template>
-          </ng-template>
-        </div>
-        <ul class="ant-select-dropdown-menu-item-group-list">
-          <li
-            nz-option-li
-            [compareWith]="compareWith"
-            *ngFor="let option of group.listOfNzOptionComponent | nzFilterOptionPipe : nzSearchValue : nzFilterOption : nzServerSearch"
-            (click)="clickOption(option,false)"
-            [nzActiveOption]="activatedOption"
-            [nzShowActive]="!isAddTagOptionDisplay"
-            [nzOption]="option"
-            [nzListOfSelectedValue]="nzListOfSelectedValue">
-          </li>
-        </ul>
-      </li>
-      <li
-        nz-option-li
-        [compareWith]="compareWith"
-        *ngFor="let option of listOfTagOption | nzFilterOptionPipe : nzSearchValue : nzFilterOption : nzServerSearch "
-        (click)="clickOption(option,false)"
-        [nzActiveOption]="activatedOption"
-        [nzShowActive]="!isAddTagOptionDisplay"
-        [nzOption]="option"
-        [nzListOfSelectedValue]="nzListOfSelectedValue">
-      </li>
-    </ul>`
+  templateUrl        : './nz-option-container.component.html'
 })
 export class NzOptionContainerComponent implements AfterContentInit, OnDestroy {
   // tslint:disable-next-line:no-any
@@ -200,9 +135,11 @@ export class NzOptionContainerComponent implements AfterContentInit, OnDestroy {
 
   scrollIntoView(): void {
     if (this.listOfNzOptionLiComponent && this.listOfNzOptionLiComponent.length) {
-      const targetLi = this.listOfNzOptionLiComponent.find(o => o.nzOption === this.activatedOption);
-      if (targetLi && targetLi.el) {
-        setTimeout(() => targetLi.el.scrollIntoView(false), 150);
+      const targetOption = this.listOfNzOptionLiComponent.find(o => o.nzOption === this.activatedOption);
+      /* tslint:disable-next-line:no-string-literal */
+      if (targetOption && targetOption.el && targetOption.el[ 'scrollIntoViewIfNeeded' ]) {
+        /* tslint:disable-next-line:no-string-literal */
+        setTimeout(() => targetOption.el[ 'scrollIntoViewIfNeeded' ](false), 150);
       }
     }
   }
@@ -215,7 +152,7 @@ export class NzOptionContainerComponent implements AfterContentInit, OnDestroy {
       let listOfSelectedValue = [ ...this.nzListOfSelectedValue ];
       if (this.isMultipleOrTags) {
         const targetValue = listOfSelectedValue.find(o => this.compareWith(o, option.nzValue));
-        if (targetValue) {
+        if (isNotNil(targetValue)) {
           if (!isPressEnter) {
             /** should not toggle option when press enter **/
             listOfSelectedValue.splice(listOfSelectedValue.indexOf(targetValue), 1);
@@ -276,7 +213,7 @@ export class NzOptionContainerComponent implements AfterContentInit, OnDestroy {
   }
 
   updateListOfFilterOption(): void {
-    this.listOfFilterOption = new NzOptionPipe().transform(this.listOfAllTemplateOption.concat(this.listOfTagOption), this.nzSearchValue, this.nzFilterOption, this.nzServerSearch);
+    this.listOfFilterOption = new NzOptionPipe().transform(this.listOfAllTemplateOption.concat(this.listOfTagOption), this.nzSearchValue, this.nzFilterOption, this.nzServerSearch) as NzOptionComponent[];
     if (this.nzSearchValue) {
       this.setActiveOption(this.listOfFilterOption[ 0 ]);
     }
@@ -285,9 +222,13 @@ export class NzOptionContainerComponent implements AfterContentInit, OnDestroy {
   /** watch options change in option group **/
   watchSubOptionChanges(): void {
     this.unsubscribeOption();
-    let optionChanges$ = new Subject().asObservable().pipe(merge(this.listOfNzOptionGroupComponent.changes)).pipe(merge(this.listOfNzOptionComponent.changes));
+    let optionChanges$ = merge(
+      new Subject().asObservable(),
+      this.listOfNzOptionGroupComponent.changes,
+      this.listOfNzOptionComponent.changes
+    );
     if (this.listOfNzOptionGroupComponent.length) {
-      this.listOfNzOptionGroupComponent.forEach(group => optionChanges$ = group.listOfNzOptionComponent ? optionChanges$.pipe(merge(group.listOfNzOptionComponent.changes)) : optionChanges$);
+      this.listOfNzOptionGroupComponent.forEach(group => optionChanges$ = group.listOfNzOptionComponent ? merge(group.listOfNzOptionComponent.changes, optionChanges$) : optionChanges$);
     }
     this.optionSubscription = optionChanges$.subscribe(() => this.refreshAllOptionStatus(true));
   }

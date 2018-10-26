@@ -44,6 +44,7 @@ describe('NzMessage', () => {
     messageService.success('SUCCESS');
     demoAppFixture.detectChanges();
 
+    expect((overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement).style.zIndex).toBe('1010');
     expect(overlayContainerElement.textContent).toContain('SUCCESS');
     expect(overlayContainerElement.querySelector('.anticon-check-circle')).not.toBeNull();
   }));
@@ -53,7 +54,7 @@ describe('NzMessage', () => {
     demoAppFixture.detectChanges();
 
     expect(overlayContainerElement.textContent).toContain('ERROR');
-    expect(overlayContainerElement.querySelector('.anticon-cross-circle')).not.toBeNull();
+    expect(overlayContainerElement.querySelector('.anticon-close-circle')).not.toBeNull();
   }));
 
   it('should open a message box with warning', (() => {
@@ -96,7 +97,7 @@ describe('NzMessage', () => {
 
     const messageElement = overlayContainerElement.querySelector('.ant-message-notice');
     dispatchMouseEvent(messageElement, 'mouseenter');
-    tick(50000);
+    tick(1000);
     expect(overlayContainerElement.textContent).toContain('EXISTS');
 
     dispatchMouseEvent(messageElement, 'mouseleave');
@@ -116,10 +117,12 @@ describe('NzMessage', () => {
     expect(overlayContainerElement.textContent).not.toContain('SUCCESS');
   }));
 
-  it('should keep the balance of messages length and then remove all', () => {
+  it('should keep the balance of messages length and then remove all', fakeAsync(() => {
     [ 1, 2, 3 ].forEach(id => {
       const content = `SUCCESS-${id}`;
       messageService.success(content);
+      demoAppFixture.detectChanges();
+      tick();
       demoAppFixture.detectChanges();
 
       expect(overlayContainerElement.textContent).toContain(content);
@@ -133,7 +136,7 @@ describe('NzMessage', () => {
     demoAppFixture.detectChanges();
     expect(overlayContainerElement.textContent).not.toContain('SUCCESS-3');
     expect((messageService as any)._container.messages.length).toBe(0); // tslint:disable-line:no-any
-  });
+  }));
 
   it('should destroy without animation', fakeAsync(() => {
     messageService.error('EXISTS', { nzDuration: 1000, nzAnimate: false });
@@ -146,7 +149,7 @@ describe('NzMessage', () => {
     messageService.config({ nzDuration: 0 });
     messageService.create('loading', 'EXISTS');
     demoAppFixture.detectChanges();
-    tick(50000);
+    tick(1000);
     expect(overlayContainerElement.textContent).toContain('EXISTS');
   }));
 });

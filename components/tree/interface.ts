@@ -8,33 +8,12 @@ export interface NzFormatEmitEvent {
   selectedKeys?: NzTreeNode[];
   checkedKeys?: NzTreeNode[];
   matchedKeys?: NzTreeNode[];
-}
-
-export interface NzFormatPosition {
-  top: number;
-  left: number;
+  nodes?: NzTreeNode[];
+  keys?: string[];
 }
 
 export interface NzFormatBeforeDropEvent {
   dragNode: NzTreeNode;
   node: NzTreeNode;
   pos: number;
-}
-
-export interface NzTreeNodeOptions {
-  title: string;
-  key: string;
-  isLeaf?: boolean;
-  checked?: boolean;
-  selected?: boolean;
-  selectable?: boolean;
-  disabled?: boolean;
-  disableCheckbox?: boolean;
-  expanded?: boolean;
-  children?: NzTreeNodeOptions[];
-}
-
-export interface NzFormatClickEvent {
-  event: MouseEvent;
-  node: NzTreeNode;
 }

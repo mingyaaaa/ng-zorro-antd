@@ -1,24 +1,19 @@
+import { DOCUMENT } from '@angular/common';
 import {
   Component,
-  HostBinding,
-  Input,
-  OnInit
+  Inject,
+  OnInit,
+  Optional,
+  Renderer2
 } from '@angular/core';
 
-import { toBoolean } from '../core/util/convert';
-
+import { NzRadioGroupComponent } from './nz-radio-group.component';
 import { NzRadioComponent } from './nz-radio.component';
 
 @Component({
   selector           : '[nz-radio-button]',
   preserveWhitespaces: false,
-  template           : `
-    <span [ngClass]="classMap">
-      <input type="radio" #inputElement class="ant-radio-button-input" [disabled]="nzDisabled" [(ngModel)]="nzChecked" (blur)="onBlur()" [attr.name]="name">
-      <span class="ant-radio-button-inner"></span>
-    </span>
-    <span><ng-content></ng-content></span>
-  `,
+  templateUrl        : './nz-radio-button.component.html',
   host               : {
     '[class.ant-radio-button-wrapper]'         : 'true',
     '[class.ant-radio-button-wrapper-checked]' : 'nzChecked',
@@ -27,4 +22,8 @@ import { NzRadioComponent } from './nz-radio.component';
 })
 export class NzRadioButtonComponent extends NzRadioComponent implements OnInit {
   prefixCls = 'ant-radio-button';
+  /* tslint:disable-next-line:no-any */
+  constructor(@Optional() nzRadioGroup: NzRadioGroupComponent, renderer: Renderer2, @Inject(DOCUMENT) document: any) {
+    super(nzRadioGroup, renderer, document);
+  }
 }

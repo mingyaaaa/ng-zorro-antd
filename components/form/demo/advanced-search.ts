@@ -25,7 +25,7 @@ import {
           <button nz-button (click)="resetForm()">Clear</button>
           <a style="margin-left:8px;font-size:12px;" (click)="toggleCollapse()">
             Collapse
-            <i class="anticon" [class.anticon-down]="isCollapse" [class.anticon-up]="!isCollapse"></i>
+            <i nz-icon [type]="isCollapse?'down':'up'"></i>
           </a>
         </div>
       </div>
@@ -56,6 +56,10 @@ import {
 
       [nz-form-label] {
         overflow: visible;
+      }
+
+      button {
+        margin-left: 8px;
       }
     `
   ]

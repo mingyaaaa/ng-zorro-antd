@@ -10,7 +10,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
         <input placeholder="input here" nz-input [(ngModel)]="inputValue" (ngModelChange)="onChange($event)" [nzAutocomplete]="auto"/>
       </nz-input-group>
       <ng-template #suffixIcon>
-        <i class="anticon anticon-search"></i>
+        <i nz-icon type="search"></i>
       </ng-template>
       <nz-autocomplete #auto>
         <nz-auto-optgroup *ngFor="let group of optionGroups" [nzLabel]="groupTitle">
@@ -19,7 +19,7 @@ import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@
               <a class="more-link" href="https://www.google.com/search?q=ng+zorro" target="_blank">更多</a>
             </span>
           </ng-template>
-          <nz-auto-option *ngFor="let option of group.children" [nzValue]="option.title">
+          <nz-auto-option *ngFor="let option of group.children" [nzLabel]="option.title" [nzValue]="option">
             {{option.title}}
             <span class="certain-search-item-count">{{option.count}} 人  关注</span>
           </nz-auto-option>
@@ -43,7 +43,7 @@ export class NzDemoAutoCompleteCertainCategoryComponent implements OnInit {
   inputValue: string;
   optionGroups: any[];
 
-  onChange(value: string): void {
+  onChange(value: any): void {
     console.log(value);
   }
 

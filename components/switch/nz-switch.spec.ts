@@ -4,6 +4,7 @@ import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule } from '@angul
 import { By } from '@angular/platform-browser';
 
 import { dispatchKeyboardEvent } from '../core/testing';
+import { NzIconModule } from '../icon/nz-icon.module';
 
 import { NzSwitchComponent } from './nz-switch.component';
 import { NzSwitchModule } from './nz-switch.module';
@@ -11,7 +12,7 @@ import { NzSwitchModule } from './nz-switch.module';
 describe('switch', () => {
   beforeEach(fakeAsync(() => {
     TestBed.configureTestingModule({
-      imports     : [ NzSwitchModule, FormsModule, ReactiveFormsModule ],
+      imports     : [ NzSwitchModule, FormsModule, ReactiveFormsModule, NzIconModule ],
       declarations: [ NzTestSwitchBasicComponent, NzTestSwitchFormComponent, NzTestSwitchTemplateComponent ]
     });
     TestBed.compileComponents();
@@ -49,6 +50,14 @@ describe('switch', () => {
       fixture.detectChanges();
       expect(testComponent.value).toBe(true);
       expect(testComponent.modelChange).toHaveBeenCalledTimes(1);
+      switchElement.nativeElement.click();
+      fixture.detectChanges();
+      flush();
+      fixture.detectChanges();
+      expect(testComponent.value).toBe(false);
+      expect(testComponent.modelChange).toHaveBeenCalledTimes(2);
+      testComponent.control = true;
+      fixture.detectChanges();
       switchElement.nativeElement.click();
       fixture.detectChanges();
       flush();
@@ -111,6 +120,12 @@ describe('switch', () => {
       fixture.detectChanges();
       expect(testComponent.value).toBe(false);
       expect(testComponent.modelChange).toHaveBeenCalledTimes(4);
+      testComponent.control = true;
+      fixture.detectChanges();
+      dispatchKeyboardEvent(switchElement.nativeElement.firstElementChild, 'keydown', 13);
+      fixture.detectChanges();
+      expect(testComponent.value).toBe(false);
+      expect(testComponent.modelChange).toHaveBeenCalledTimes(4);
     });
     it('should children work', fakeAsync(() => {
       fixture.detectChanges();
@@ -148,7 +163,7 @@ describe('switch', () => {
       fixture.detectChanges();
       flush();
       fixture.detectChanges();
-      expect(switchElement.nativeElement.firstElementChild.firstElementChild.firstElementChild.firstElementChild.classList).toContain('anticon-cross');
+      expect(switchElement.nativeElement.firstElementChild.firstElementChild.firstElementChild.firstElementChild.classList).toContain('anticon-close');
       switchElement.nativeElement.click();
       fixture.detectChanges();
       flush();
@@ -198,14 +213,15 @@ describe('switch', () => {
 @Component({
   selector: 'nz-test-switch-basic',
   template: `
-    <ng-template #checkedChildrenTemplate><i class="anticon anticon-check"></i></ng-template>
-    <ng-template #unCheckedChildrenTemplate><i class="anticon anticon-cross"></i></ng-template>
+    <ng-template #checkedChildrenTemplate><i nz-icon type="check"></i></ng-template>
+    <ng-template #unCheckedChildrenTemplate><i nz-icon type="closs"></i></ng-template>
     <nz-switch
       [(ngModel)]="value"
       (ngModelChange)="modelChange($event)"
       [nzDisabled]="disabled"
       [nzLoading]="loading"
       [nzSize]="size"
+      [nzControl]="control"
       [nzCheckedChildren]="checkedChildren"
       [nzUnCheckedChildren]="unCheckedChildren">
     </nz-switch>`
@@ -217,6 +233,7 @@ export class NzTestSwitchBasicComponent {
   checkedChildren = 'on';
   unCheckedChildren = 'off';
   value = false;
+  control = false;
   disabled = false;
   size = 'default';
   loading = false;
@@ -226,8 +243,8 @@ export class NzTestSwitchBasicComponent {
 @Component({
   selector: 'nz-test-switch-template',
   template: `
-    <ng-template #checkedChildrenTemplate><i class="anticon anticon-check"></i></ng-template>
-    <ng-template #unCheckedChildrenTemplate><i class="anticon anticon-cross"></i></ng-template>
+    <ng-template #checkedChildrenTemplate><i nz-icon type="check"></i></ng-template>
+    <ng-template #unCheckedChildrenTemplate><i nz-icon type="close"></i></ng-template>
     <nz-switch
       [nzCheckedChildren]="checkedChildrenTemplate"
       [nzUnCheckedChildren]="unCheckedChildrenTemplate">

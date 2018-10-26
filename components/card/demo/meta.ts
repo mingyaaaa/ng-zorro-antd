@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'nz-demo-card-meta',
   template: `
     <nz-card style="width:300px;" [nzCover]="coverTemplate" [nzActions]="[actionSetting,actionEdit,actionEllipsis]">
-      <div nz-card-meta nzTitle="Card title" nzDescription="This is the description" [nzAvatar]="avatarTemplate"></div>
+      <nz-card-meta nzTitle="Card title" nzDescription="This is the description" [nzAvatar]="avatarTemplate"></nz-card-meta>
     </nz-card>
     <ng-template #avatarTemplate>
       <nz-avatar nzSrc="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"></nz-avatar>
@@ -13,13 +13,13 @@ import { Component } from '@angular/core';
       <img alt="example" src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"/>
     </ng-template>
     <ng-template #actionSetting>
-      <i class="anticon anticon-setting"></i>
+      <i nz-icon type="setting"></i>
     </ng-template>
     <ng-template #actionEdit>
-      <i class="anticon anticon-edit"></i>
+      <i nz-icon type="edit"></i>
     </ng-template>
     <ng-template #actionEllipsis>
-      <i class="anticon anticon-ellipsis"></i>
+      <i nz-icon type="ellipsis"></i>
     </ng-template>
   `
 })

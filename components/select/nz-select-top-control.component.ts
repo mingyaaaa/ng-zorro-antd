@@ -6,6 +6,7 @@ import {
   trigger
 } from '@angular/animations';
 import { Component, ElementRef, EventEmitter, Input, Output, Renderer2, ViewChild } from '@angular/core';
+import { isNotNil } from '../core/util/check';
 import { NzOptionComponent } from './nz-option.component';
 
 @Component({
@@ -25,68 +26,7 @@ import { NzOptionComponent } from './nz-option.component';
       ])
     ])
   ],
-  template           : `
-    <ng-template #inputTemplate>
-      <input
-        #inputElement
-        autocomplete="off"
-        class="ant-select-search__field"
-        (compositionstart)="isComposing = true"
-        (compositionend)="isComposing = false"
-        (input)="updateWidth()"
-        (keydown)="onKeyDownInput($event)"
-        [ngModel]="inputValue"
-        (ngModelChange)="setInputValue($event,true)"
-        [disabled]="nzDisabled">
-    </ng-template>
-    <div
-      *ngIf="nzPlaceHolder"
-      nz-select-unselectable
-      [style.display]="placeHolderDisplay"
-      (click)="focusOnInput()"
-      class="ant-select-selection__placeholder">
-      {{ nzPlaceHolder }}
-    </div>
-    <!--single mode-->
-    <ng-container *ngIf="isSingleMode">
-      <!--selected label-->
-      <div
-        *ngIf="nzListOfSelectedValue.length"
-        class="ant-select-selection-selected-value"
-        [attr.title]="nzListOfSelectedValue[0].nzLabel"
-        [ngStyle]="selectedValueDisplay">
-        {{ singleValueLabel }}
-      </div>
-      <!--show search-->
-      <div
-        *ngIf="nzShowSearch"
-        [style.display]="searchDisplay"
-        class="ant-select-search ant-select-search--inline">
-        <div class="ant-select-search__field__wrap">
-          <ng-template [ngTemplateOutlet]="inputTemplate"></ng-template>
-          <span class="ant-select-search__field__mirror">{{inputValue}}&nbsp;</span>
-        </div>
-      </div>
-    </ng-container>
-    <!--multiple or tags mode-->
-    <ul *ngIf="isMultipleOrTags">
-      <ng-container *ngFor="let value of nzListOfSelectedValue">
-        <li
-          *ngIf="isOptionDisplay(value)"
-          [@tagAnimation]
-          [attr.title]="getPropertyFromValue(value,'nzLabel')"
-          [class.ant-select-selection__choice__disabled]="getPropertyFromValue(value,'nzDisabled')"
-          class="ant-select-selection__choice">
-          <div class="ant-select-selection__choice__content">{{ getPropertyFromValue(value, 'nzLabel') || value }}</div>
-          <span *ngIf="!getPropertyFromValue(value,'nzDisabled')" class="ant-select-selection__choice__remove" (click)="removeValueFormSelected(value)"></span>
-        </li>
-      </ng-container>
-
-      <li class="ant-select-search ant-select-search--inline">
-        <ng-template [ngTemplateOutlet]="inputTemplate"></ng-template>
-      </li>
-    </ul>
-  `,
+  templateUrl        : './nz-select-top-control.component.html',
   host               : {
     '[class.ant-select-selection__rendered]': 'true'
   }
@@ -137,13 +77,13 @@ export class NzSelectTopControlComponent {
   updateListOfCachedOption(): void {
     if (this.isSingleMode) {
       const selectedOption = this.nzListTemplateOfOption.find(o => this.compareWith(o.nzValue, this.nzListOfSelectedValue[ 0 ]));
-      if (selectedOption) {
+      if (isNotNil(selectedOption)) {
         this.listOfCachedSelectedOption = [ selectedOption ];
       }
     } else {
-      const listOfCachedOptionFromLatestTemplate = this.nzListTemplateOfOption.filter(o => !!this.nzListOfSelectedValue.find(v => this.compareWith(v, o.nzValue)));
-      const restSelectedValue = this.nzListOfSelectedValue.filter(v => !listOfCachedOptionFromLatestTemplate.find(o => this.compareWith(o.nzValue, v)));
-      const listOfCachedOptionFromOld = this.listOfCachedSelectedOption.filter(o => restSelectedValue.find(v => this.compareWith(o.nzValue, v)));
+      const listOfCachedOptionFromLatestTemplate = this.nzListTemplateOfOption.filter(o => isNotNil(this.nzListOfSelectedValue.find(v => this.compareWith(v, o.nzValue))));
+      const restSelectedValue = this.nzListOfSelectedValue.filter(v => !isNotNil(listOfCachedOptionFromLatestTemplate.find(o => this.compareWith(o.nzValue, v))));
+      const listOfCachedOptionFromOld = this.listOfCachedSelectedOption.filter(o => isNotNil(restSelectedValue.find(v => this.compareWith(o.nzValue, v))));
       this.listOfCachedSelectedOption = listOfCachedOptionFromLatestTemplate.concat(listOfCachedOptionFromOld);
     }
   }
@@ -166,11 +106,7 @@ export class NzSelectTopControlComponent {
     return this.inputValue || this.isComposing || this.nzListOfSelectedValue.length ? 'none' : 'block';
   }
 
-  get searchDisplay(): string {
-    return this.nzOpen ? 'block' : 'none';
-  }
-
-  get selectedValueDisplay(): { [key: string]: string } {
+  get selectedValueDisplay(): { [ key: string ]: string } {
     let showSelectedValue = false;
     let opacity = 1;
     if (!this.nzShowSearch) {
@@ -215,12 +151,17 @@ export class NzSelectTopControlComponent {
   }
 
   // tslint:disable-next-line:no-any
-  removeValueFormSelected(value: any): void {
+  removeValueFormSelected(value: any, event?: MouseEvent): void {
     if (this.nzDisabled || this.getPropertyFromValue(value, 'nzDisabled')) {
       return;
     }
     this._listOfSelectedValue = this.nzListOfSelectedValue.filter(item => item !== value);
     this.nzListOfSelectedValueChange.emit(this.nzListOfSelectedValue);
+
+    // Do not trigger the popup
+    if (event && event.stopPropagation) {
+      event.stopPropagation();
+    }
   }
 
   updateWidth(): void {

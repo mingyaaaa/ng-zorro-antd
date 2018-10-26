@@ -1,5 +1,5 @@
-import { coerceBooleanProperty, coerceNumberProperty } from '@angular/cdk/coercion';
-// import { Input } from '@angular/core';
+import { coerceBooleanProperty, coerceCssPixelValue, coerceNumberProperty } from '@angular/cdk/coercion';
+import { FunctionProp } from '../types/common-wrap';
 
 export function toBoolean(value: boolean | string): boolean {
   return coerceBooleanProperty(value);
@@ -7,6 +7,15 @@ export function toBoolean(value: boolean | string): boolean {
 
 export function toNumber<D>(value: number | string, fallback: D): number | D {
   return coerceNumberProperty(value, fallback);
+}
+
+export function toCssPixel(value: number | string): string {
+  return coerceCssPixelValue(value);
+}
+
+// Get the funciton-property type's value
+export function valueFunctionProp<T>(prop: FunctionProp<T>, ...args: any[]): T { // tslint:disable-line: no-any
+  return typeof prop === 'function' ? prop(...args) : prop;
 }
 
 /**

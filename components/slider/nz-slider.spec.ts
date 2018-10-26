@@ -443,7 +443,8 @@ describe('NzSlider', () => {
       dispatchClickEventSequence(sliderNativeElement, 0.3);
       fixture.detectChanges();
 
-      expect(sliderInstance.value).toBe(70);
+      // It behaves differently in CI and local environment (windows 10, chrome).
+      expect(sliderInstance.value).toBeCloseTo(71, -1);
     });
 
     it('should update the track fill on click', () => {
@@ -452,7 +453,7 @@ describe('NzSlider', () => {
       dispatchClickEventSequence(sliderNativeElement, 0.39);
       fixture.detectChanges();
 
-      expect(trackFillElement.style.height).toBe('61%');
+      expect(parseInt(trackFillElement.style.height, 10)).toBeCloseTo(62, -1);
     });
 
     it('should have ant-slider-vertical class', () => {
@@ -576,17 +577,21 @@ describe('NzSlider', () => {
       sliderControl = testComponent.form.controls.slider;
     });
 
+    it('should have correct initial value', () => {
+      expect(sliderInstance.value).toBe(42);
+    });
+
     it('should not update the control when the value is updated', () => {
-      expect(sliderControl.value).toBe(0);
+      expect(sliderControl.value).toBe(42);
 
       sliderInstance.value = 11;
       fixture.detectChanges();
 
-      expect(sliderControl.value).toBe(0);
+      expect(sliderControl.value).toBe(42);
     });
 
     it('should update the control on click', () => {
-      expect(sliderControl.value).toBe(0);
+      expect(sliderControl.value).toBe(42);
 
       dispatchClickEventSequence(sliderNativeElement, 0.76);
       fixture.detectChanges();
@@ -595,16 +600,16 @@ describe('NzSlider', () => {
     });
 
     it('should update the control on slide', () => {
-      expect(sliderControl.value).toBe(0);
+      expect(sliderControl.value).toBe(42);
 
-      dispatchSlideEventSequence(sliderNativeElement, 0, 0.19);
+      dispatchSlideEventSequence(sliderNativeElement, 0.42, 0.19);
       fixture.detectChanges();
 
       expect(sliderControl.value).toBe(19);
     });
 
     it('should update the value when the control is set', () => {
-      expect(sliderInstance.value).toBe(0);
+      expect(sliderInstance.value).toBe(42);
 
       sliderControl.setValue(7);
       fixture.detectChanges();
@@ -754,7 +759,7 @@ class SliderWithFormControlComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      slider: [ 0 ]
+      slider: [ 42 ]
     });
   }
 }

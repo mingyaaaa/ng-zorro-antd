@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Input, Renderer2 } from '@angular/core';
 import { NzUpdateHostClassService } from '../core/services/update-host-class.service';
 import { toBoolean } from '../core/util/convert';
 import { NzRowComponent } from '../grid/nz-row.component';
@@ -8,8 +8,7 @@ import { NzRowComponent } from '../grid/nz-row.component';
   selector           : 'nz-form-item',
   preserveWhitespaces: false,
   providers          : [ NzUpdateHostClassService ],
-  template           : `
-    <ng-content></ng-content>`,
+  templateUrl        : './nz-form-item.component.html',
   host               : {
     '[class.ant-form-item]'          : 'true',
     '[class.ant-form-item-with-help]': 'withHelp>0'
@@ -38,5 +37,9 @@ export class NzFormItemComponent extends NzRowComponent {
 
   disableHelp(): void {
     this.withHelp--;
+  }
+
+  constructor(elementRef: ElementRef, renderer: Renderer2, nzUpdateHostClassService: NzUpdateHostClassService) {
+    super(elementRef, renderer, nzUpdateHostClassService);
   }
 }

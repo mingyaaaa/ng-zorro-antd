@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { discardPeriodicTasks, fakeAsync, tick, TestBed } from '@angular/core/testing';
+import { fakeAsync, tick, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { dispatchKeyboardEvent } from '../core/testing';
@@ -53,6 +53,14 @@ describe('carousel', () => {
       testComponent.dots = false;
       fixture.detectChanges();
       expect(carouselWrapper.nativeElement.querySelector('.slick-dots')).toBeNull();
+    });
+    it('should nzDotRender work', () => {
+      fixture.detectChanges();
+      expect(testComponent.dots).toBe(true);
+      expect(carouselWrapper.nativeElement.querySelector('.slick-dots').children.length).toBe(4);
+      expect(carouselWrapper.nativeElement.querySelector('.slick-dots').firstElementChild.innerText).toBe('1');
+      expect(carouselWrapper.nativeElement.querySelector('.slick-dots').lastElementChild.innerText).toBe('4');
+      expect(carouselWrapper.nativeElement.querySelector('.slick-dots').firstElementChild.firstElementChild.tagName).toBe('A');
     });
     it('should click content change', () => {
       fixture.detectChanges();
@@ -109,22 +117,35 @@ describe('carousel', () => {
       fixture.detectChanges();
       expect(carouselWrapper.nativeElement.querySelector('.slick-track').style.transform).not.toBe('translate3d(0px, 0px, 0px)');
     });
-    it('should autoplay work', fakeAsync((done) => {
+    it('should autoplay work', fakeAsync(() => {
+      testComponent.autoPlay = true;
       fixture.detectChanges();
       expect(carouselContents[ 0 ].nativeElement.classList).toContain('slick-active');
-      testComponent.autoPlay = true;
       fixture.detectChanges();
       tick(3000 + 10);
       fixture.detectChanges();
-      discardPeriodicTasks();
       expect(carouselContents[ 1 ].nativeElement.classList).toContain('slick-active');
       carouselWrapper.nativeElement.querySelector('.slick-dots').lastElementChild.click();
-      testComponent.autoPlay = true;
       fixture.detectChanges();
       tick(3000 + 10);
       fixture.detectChanges();
-      discardPeriodicTasks();
+      testComponent.nzCarouselComponent.clearTimeout();
       expect(carouselContents[ 0 ].nativeElement.classList).toContain('slick-active');
+    }));
+    it('should autoplay speed work', fakeAsync(() => {
+      testComponent.autoPlay = true;
+      testComponent.autoPlaySpeed = 1000;
+      fixture.detectChanges();
+      expect(carouselContents[ 0 ].nativeElement.classList).toContain('slick-active');
+      fixture.detectChanges();
+      tick(1000 + 10);
+      fixture.detectChanges();
+      expect(carouselContents[ 1 ].nativeElement.classList).toContain('slick-active');
+      testComponent.autoPlaySpeed = 0;
+      fixture.detectChanges();
+      tick(2000 + 10);
+      fixture.detectChanges();
+      expect(carouselContents[ 1 ].nativeElement.classList).toContain('slick-active');
     }));
     it('should func work', () => {
       fixture.detectChanges();
@@ -139,6 +160,28 @@ describe('carousel', () => {
       fixture.detectChanges();
       expect(carouselContents[ 2 ].nativeElement.classList).toContain('slick-active');
     });
+    it('should resize content after window resized', fakeAsync(() => {
+      const resizeSpy = spyOn(testComponent.nzCarouselComponent, 'renderContent');
+      window.dispatchEvent(new Event('resize'));
+      tick(200);
+      expect(resizeSpy).toHaveBeenCalled();
+    }));
+    it('should swipe work', fakeAsync(() => {
+      fixture.detectChanges();
+      testComponent.nzCarouselComponent.swipe('swipeleft');
+      tick(1000);
+      fixture.detectChanges();
+      expect(carouselContents[1].nativeElement.classList).toContain('slick-active');
+    }));
+    it('should swipeInProgress work', () => {
+      fixture.detectChanges();
+      fixture.detectChanges();
+      testComponent.nzCarouselComponent.swipeInProgress({ isFinal: false, deltaX: 100 });
+      expect(testComponent.nzCarouselComponent.transform).toBe('translate3d(120px, 0px, 0px)');
+      testComponent.nzCarouselComponent.swipeInProgress({ isFinal: true });
+      fixture.detectChanges();
+      expect(testComponent.nzCarouselComponent.transform).toBe('translate3d(0px, 0px, 0px)');
+    });
   });
 });
 
@@ -149,10 +192,13 @@ describe('carousel', () => {
       [nzEffect]="effect"
       [nzVertical]="vertical"
       [nzDots]="dots"
+      [nzDotRender]="dotRender"
       [nzAutoPlay]="autoPlay"
+      [nzAutoPlaySpeed]="autoPlaySpeed"
       (nzAfterChange)="afterChange($event)"
       (nzBeforeChange)="beforeChange($event)">
       <div nz-carousel-content *ngFor="let index of array"><h3>{{index}}</h3></div>
+      <ng-template #dotRender let-index><a>{{index+1}}</a></ng-template>
     </nz-carousel>`
 })
 export class NzTestCarouselBasicComponent {
@@ -162,6 +208,7 @@ export class NzTestCarouselBasicComponent {
   effect = 'scrollx';
   array = [ 1, 2, 3, 4 ];
   autoPlay = false;
+  autoPlaySpeed = 3000;
   afterChange = jasmine.createSpy('afterChange callback');
   beforeChange = jasmine.createSpy('beforeChange callback');
 

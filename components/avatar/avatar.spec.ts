@@ -2,6 +2,8 @@ import { Component, DebugElement, ViewChild } from '@angular/core';
 import { fakeAsync, tick, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
+import { NzIconModule } from '../icon/nz-icon.module';
+
 import { NzAvatarComponent } from './nz-avatar.component';
 import { NzAvatarModule } from './nz-avatar.module';
 
@@ -18,7 +20,7 @@ describe('avatar', () => {
   let dl: DebugElement;
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ NzAvatarModule ],
+      imports: [ NzAvatarModule, NzIconModule ],
       declarations: [ TestAvatarComponent ]
     }).compileComponents();
     fixture = TestBed.createComponent(TestAvatarComponent);
@@ -27,8 +29,27 @@ describe('avatar', () => {
     fixture.detectChanges();
   });
 
-  it('#nzSrc', () => {
-    expect(context).not.toBeNull();
+  describe('#nzSrc', () => {
+    it('#nzSrc', () => {
+      expect(context).not.toBeNull();
+    });
+    it('should tolerate error src', fakeAsync(() => {
+      expect(getType(dl)).toBe('image');
+      expect(context.comp.hasSrc).toBe(true);
+      // Manually dispatch error.
+      context.nzSrc = '';
+      context.comp.imgError();
+      tick();
+      fixture.detectChanges();
+      expect(getType(dl)).toBe('icon');
+      expect(context.comp.hasSrc).toBe(false);
+      context.nzSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==';
+      tick();
+      fixture.detectChanges();
+      expect(context.comp.hasSrc).toBe(true);
+      expect(getType(dl)).toBe('image');
+      tick();
+    }));
   });
 
   it('#nzIcon', () => {

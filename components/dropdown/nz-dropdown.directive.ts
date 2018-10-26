@@ -1,5 +1,5 @@
 import { Directive, ElementRef, HostListener, OnInit, Renderer2 } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 @Directive({
   selector: '[nz-dropdown]',
@@ -24,6 +24,7 @@ export class NzDropDownDirective implements OnInit {
 
   @HostListener('click', [ '$event' ])
   onClick(e: MouseEvent): void {
+    e.stopPropagation();
     this.$click.next(e);
   }
 

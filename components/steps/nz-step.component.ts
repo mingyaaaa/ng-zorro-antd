@@ -9,52 +9,13 @@ import {
 import { NzUpdateHostClassService } from '../core/services/update-host-class.service';
 
 // tslint:disable-next-line:no-any
-export type StepNgClassType = string | string[] | Set<string> | { [klass: string]: any; };
+export type StepNgClassType = string | string[] | Set<string> | { [ klass: string ]: any; };
 
 @Component({
   selector           : 'nz-step',
   providers          : [ NzUpdateHostClassService ],
   preserveWhitespaces: false,
-  template           : `
-    <div class="ant-steps-item-tail" *ngIf="last !== true"></div>
-    <div class="ant-steps-item-icon">
-      <ng-template [ngIf]="!showProcessDot">
-        <span class="ant-steps-icon anticon anticon-check" *ngIf="nzStatus === 'finish' && !nzIcon"></span>
-        <span class="ant-steps-icon anticon anticon-cross" *ngIf="nzStatus === 'error'"></span>
-        <span class="ant-steps-icon" *ngIf="(nzStatus === 'process' || nzStatus === 'wait') && !nzIcon">{{ index + 1 }}</span>
-        <span class="ant-steps-icon" *ngIf="nzIcon">
-          <ng-container *ngIf="isIconString; else iconTemplate">
-            <i [ngClass]="nzIcon"></i>
-          </ng-container>
-          <ng-template #iconTemplate>
-          <ng-template [ngTemplateOutlet]="nzIcon"></ng-template>
-        </ng-template>
-        </span>
-      </ng-template>
-      <ng-template [ngIf]="showProcessDot">
-        <span class="ant-steps-icon">
-          <ng-template #processDotTemplate>
-            <span class="ant-steps-icon-dot"></span>
-          </ng-template>
-          <ng-template [ngTemplateOutlet]="customProcessTemplate||processDotTemplate" [ngTemplateOutletContext]="{ $implicit: processDotTemplate, status:nzStatus, index:index }"></ng-template>
-        </span>
-      </ng-template>
-    </div>
-    <div class="ant-steps-item-content">
-      <div class="ant-steps-item-title">
-        <ng-container *ngIf="isTitleString; else titleTemplate">{{ nzTitle }}</ng-container>
-        <ng-template #titleTemplate>
-          <ng-template [ngTemplateOutlet]="nzTitle"></ng-template>
-        </ng-template>
-      </div>
-      <div class="ant-steps-item-description">
-        <ng-container *ngIf="isDescriptionString; else nzDescription">{{ nzDescription }}</ng-container>
-        <ng-template #descriptionTemplate>
-          <ng-template [ngTemplateOutlet]="nzDescription"></ng-template>
-        </ng-template>
-      </div>
-    </div>
-  `
+  templateUrl        : './nz-step.component.html'
 })
 export class NzStepComponent {
   private _status = 'wait';
@@ -62,7 +23,8 @@ export class NzStepComponent {
   private _description: string | TemplateRef<void>;
   private _icon: StepNgClassType | TemplateRef<void>;
   private _title: string | TemplateRef<void>;
-  private el: HTMLElement;
+  private el: HTMLElement = this.elementRef.nativeElement;
+  oldAPIIcon = true; // Make the user defined icon compatible to old API. Should be removed in 2.0.
   isCustomStatus = false;
   isDescriptionString = true;
   isTitleString = true;
@@ -87,7 +49,17 @@ export class NzStepComponent {
 
   @Input()
   set nzIcon(value: StepNgClassType | TemplateRef<void>) {
-    this.isIconString = !(value instanceof TemplateRef);
+    if (!(value instanceof TemplateRef)) {
+      this.isIconString = true;
+      if (typeof value === 'string') {
+        const str = value as string;
+        this.oldAPIIcon = str.indexOf('anticon') > -1;
+      } else {
+        this.oldAPIIcon = true;
+      }
+    } else {
+      this.isIconString = false;
+    }
     this._icon = value;
   }
 
@@ -150,6 +122,5 @@ export class NzStepComponent {
   }
 
   constructor(private elementRef: ElementRef, private nzUpdateHostClassService: NzUpdateHostClassService) {
-    this.el = elementRef.nativeElement;
   }
 }

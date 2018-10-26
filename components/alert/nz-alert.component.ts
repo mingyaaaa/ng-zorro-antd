@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 
 // tslint:disable-next-line:no-any
-export type NgClassType = string | string[] | Set<string> | { [klass: string]: any; };
+export type NgClassType = string | string[] | Set<string> | { [ klass: string ]: any; };
 
 import { fadeAnimation } from '../core/animation/fade-animations';
 import { toBoolean } from '../core/util/convert';
@@ -17,43 +17,7 @@ import { toBoolean } from '../core/util/convert';
   selector           : 'nz-alert',
   animations         : [ fadeAnimation ],
   preserveWhitespaces: false,
-  template           : `
-    <div [ngClass]="outerClassMap" *ngIf="display" [@fadeAnimation]>
-      <ng-container *ngIf="nzShowIcon">
-        <i class="ant-alert-icon" [ngClass]="nzIconType" *ngIf="nzIconType; else iconTemplate"></i>
-        <ng-template #iconTemplate>
-          <i class="ant-alert-icon anticon" [ngClass]="iconClassMap">
-          </i>
-        </ng-template>
-      </ng-container>
-      <span class="ant-alert-message" *ngIf="nzMessage">
-        <ng-container *ngIf="isMessageString; else messageTemplate">{{ nzMessage }}</ng-container>
-        <ng-template #messageTemplate>
-          <ng-template [ngTemplateOutlet]="nzMessage"></ng-template>
-        </ng-template>
-      </span>
-      <span class="ant-alert-description" *ngIf="nzDescription">
-        <ng-container *ngIf="isDescriptionString; else descriptionTemplate">{{ nzDescription }}</ng-container>
-        <ng-template #descriptionTemplate>
-          <ng-template [ngTemplateOutlet]="nzDescription"></ng-template>
-        </ng-template>
-      </span>
-      <a
-        *ngIf="nzCloseable || nzCloseText"
-        (click)="closeAlert($event)"
-        class="ant-alert-close-icon">
-        <ng-template #closeDefaultTemplate>
-          <i class="anticon anticon-cross"></i>
-        </ng-template>
-        <ng-container *ngIf="nzCloseText; else closeDefaultTemplate">
-          <ng-container *ngIf="isCloseTextString; else closeTextTemplate">{{ nzCloseText }}</ng-container>
-          <ng-template #closeTextTemplate>
-            <ng-template [ngTemplateOutlet]="nzCloseText"></ng-template>
-          </ng-template>
-        </ng-container>
-      </a>
-    </div>
-  `,
+  templateUrl        : './nz-alert.component.html',
   styles             : [
       `:host {
       display: block;
@@ -76,7 +40,7 @@ export class NzAlertComponent implements OnInit {
   isMessageString: boolean;
   isCloseTextString: boolean;
   outerClassMap;
-  iconClassMap;
+  iconType;
   @Output() nzOnClose: EventEmitter<boolean> = new EventEmitter();
   @Input() nzIconType: NgClassType;
 
@@ -162,7 +126,12 @@ export class NzAlertComponent implements OnInit {
 
   closeAlert(): void {
     this.display = false;
-    this.nzOnClose.emit(true);
+  }
+
+  onFadeAnimationDone(): void {
+    if (!this.display) {
+      this.nzOnClose.emit(true);
+    }
   }
 
   updateOuterClassMap(): void {
@@ -176,16 +145,22 @@ export class NzAlertComponent implements OnInit {
   }
 
   updateIconClassMap(): void {
-    this.iconClassMap = {
-      'anticon-cross-circle-o'      : this.nzDescription && this.nzType === 'error',
-      'anticon-check-circle-o'      : this.nzDescription && this.nzType === 'success',
-      'anticon-info-circle-o'       : this.nzDescription && this.nzType === 'info',
-      'anticon-exclamation-circle-o': this.nzDescription && this.nzType === 'warning',
-      'anticon-cross-circle'        : (!this.nzDescription) && this.nzType === 'error',
-      'anticon-check-circle'        : (!this.nzDescription) && this.nzType === 'success',
-      'anticon-info-circle'         : (!this.nzDescription) && this.nzType === 'info',
-      'anticon-exclamation-circle'  : (!this.nzDescription) && this.nzType === 'warning'
+    const iconType = {
+      'close-circle-o'         : this.nzDescription && this.nzType === 'error',
+      'check-circle-o'         : this.nzDescription && this.nzType === 'success',
+      'info-circle-o'          : this.nzDescription && this.nzType === 'info',
+      'exclamation-circle-o'   : this.nzDescription && this.nzType === 'warning',
+      'close-circle-fill'      : (!this.nzDescription) && this.nzType === 'error',
+      'check-circle-fill'      : (!this.nzDescription) && this.nzType === 'success',
+      'info-circle-fill'       : (!this.nzDescription) && this.nzType === 'info',
+      'exclamation-circle-fill': (!this.nzDescription) && this.nzType === 'warning'
     };
+
+    Object.keys(iconType).forEach(key => {
+      if (iconType[ key ]) {
+        this.iconType = key;
+      }
+    });
   }
 
   ngOnInit(): void {

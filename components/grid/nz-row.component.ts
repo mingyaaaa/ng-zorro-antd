@@ -37,16 +37,15 @@ const responsiveMap: BreakpointMap = {
   selector           : 'nz-row',
   preserveWhitespaces: false,
   providers          : [ NzUpdateHostClassService ],
-  template           : `
-    <ng-content></ng-content>
-  `
+  templateUrl        : './nz-row.component.html'
 })
 export class NzRowComponent implements OnInit {
+
   private _gutter: number | object;
   private _type: NzType;
   private _align: NzAlign = 'top';
   private _justify: NzJustify = 'start';
-  private el: HTMLElement;
+  private el: HTMLElement = this.elementRef.nativeElement;
   private prefixCls = 'ant-row';
   private breakPoint: Breakpoint;
   actualGutter: number;
@@ -139,7 +138,6 @@ export class NzRowComponent implements OnInit {
   }
 
   constructor(public elementRef: ElementRef, public renderer: Renderer2, public nzUpdateHostClassService: NzUpdateHostClassService) {
-    this.el = this.elementRef.nativeElement;
   }
 
   ngOnInit(): void {

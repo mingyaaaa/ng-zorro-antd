@@ -24,18 +24,7 @@ import { NzCheckboxWrapperComponent } from './nz-checkbox-wrapper.component';
 @Component({
   selector           : '[nz-checkbox]',
   preserveWhitespaces: false,
-  template           : `
-    <span [ngClass]="classMap">
-      <input
-        #inputElement
-        [checked]="nzChecked"
-        type="checkbox"
-        class="ant-checkbox-input"
-        (blur)="onBlur()">
-      <span class="ant-checkbox-inner"></span>
-    </span>
-    <span #contentElement (cdkObserveContent)="checkContent()"><ng-content></ng-content></span>
-  `,
+  templateUrl        : './nz-checkbox.component.html',
   providers          : [
     {
       provide    : NG_VALUE_ACCESSOR,
@@ -49,7 +38,7 @@ export class NzCheckboxComponent implements OnInit, ControlValueAccessor, OnChan
   private _indeterminate = false;
   private _autoFocus = false;
   private _checked = false;
-  private el: HTMLElement;
+  private el: HTMLElement = this.elementRef.nativeElement;
   private isInit = false;
   private prefixCls = 'ant-checkbox';
   private onChange = Function.prototype;
@@ -173,7 +162,6 @@ export class NzCheckboxComponent implements OnInit, ControlValueAccessor, OnChan
   }
 
   constructor(private elementRef: ElementRef, private renderer: Renderer2, @Optional() private nzCheckboxWrapperComponent: NzCheckboxWrapperComponent) {
-    this.el = this.elementRef.nativeElement;
   }
 
   ngOnInit(): void {

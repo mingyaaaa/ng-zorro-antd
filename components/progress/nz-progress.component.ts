@@ -12,60 +12,7 @@ import { isNotNil } from '../core/util/check';
 @Component({
   selector           : 'nz-progress',
   preserveWhitespaces: false,
-  template           : `
-    <ng-template #progressInfoTemplate>
-      <span class="ant-progress-text" *ngIf="nzShowInfo">
-        <ng-container *ngIf="(nzStatus=='exception')||(nzStatus=='success')&&(!isFormatSet); else formatTemplate">
-          <i class="anticon" [ngClass]="iconClassMap"></i>
-        </ng-container>
-        <ng-template #formatTemplate>
-          {{ nzFormat(nzPercent) }}
-        </ng-template>
-      </span>
-    </ng-template>
-    <div [ngClass]="'ant-progress ant-progress-status-'+nzStatus"
-      [class.ant-progress-line]="nzType=='line'"
-      [class.ant-progress-small]="nzSize=='small'"
-      [class.ant-progress-show-info]="nzShowInfo"
-      [class.ant-progress-circle]="isCirCleStyle">
-      <div *ngIf="nzType=='line'">
-        <div class="ant-progress-outer">
-          <div class="ant-progress-inner">
-            <div class="ant-progress-bg" [style.width.%]="nzPercent" [style.height.px]="nzStrokeWidth"></div>
-            <div class="ant-progress-success-bg" [style.width.%]="nzSuccessPercent" [style.height.px]="nzStrokeWidth"></div>
-          </div>
-        </div>
-        <ng-template [ngTemplateOutlet]="progressInfoTemplate"></ng-template>
-      </div>
-      <div
-        [style.width.px]="this.nzWidth"
-        [style.height.px]="this.nzWidth"
-        [style.fontSize.px]="this.nzWidth*0.15+6"
-        class="ant-progress-inner"
-        *ngIf="isCirCleStyle">
-        <svg class="ant-progress-circle " viewBox="0 0 100 100">
-          <path
-            class="ant-progress-circle-trail"
-            stroke="#f3f3f3"
-            fill-opacity="0"
-            [attr.stroke-width]="nzStrokeWidth"
-            [ngStyle]="trailPathStyle"
-            [attr.d]="pathString">
-          </path>
-          <path
-            class="ant-progress-circle-path"
-            [attr.d]="pathString"
-            stroke-linecap="round"
-            fill-opacity="0"
-            [attr.stroke]="statusColorMap[nzStatus]"
-            [attr.stroke-width]="nzPercent?nzStrokeWidth:0"
-            [ngStyle]="strokePathStyle">
-          </path>
-        </svg>
-        <ng-template [ngTemplateOutlet]="progressInfoTemplate"></ng-template>
-      </div>
-    </div>
-  `
+  templateUrl        : './nz-progress.component.html'
 })
 export class NzProgressComponent implements OnInit {
   private _gapDegree = 0;
@@ -77,10 +24,11 @@ export class NzProgressComponent implements OnInit {
   private _size = 'default';
   private _type: NzProgressTypeType = 'line';
   private _format = (percent: number): string => `${percent}%`;
-  trailPathStyle: { [key: string]: string };
-  strokePathStyle: { [key: string]: string };
+  trailPathStyle: { [ key: string ]: string };
+  strokePathStyle: { [ key: string ]: string };
   pathString: string;
-  iconClassMap;
+  icon;
+  iconTheme;
   isStatusSet = false;
   isStrokeWidthSet = false;
   isFormatSet = false;
@@ -130,7 +78,7 @@ export class NzProgressComponent implements OnInit {
         this._status = this._cacheStatus;
       }
       this.updatePathStyles();
-      this.updateIconClassMap();
+      this.updateIcon();
     }
   }
 
@@ -157,7 +105,7 @@ export class NzProgressComponent implements OnInit {
       this._status = value;
       this._cacheStatus = value;
       this.isStatusSet = true;
-      this.updateIconClassMap();
+      this.updateIcon();
     }
   }
 
@@ -181,7 +129,7 @@ export class NzProgressComponent implements OnInit {
         this._gapDegree = 75;
       }
     }
-    this.updateIconClassMap();
+    this.updateIcon();
     this.updatePathStyles();
   }
 
@@ -261,19 +209,25 @@ export class NzProgressComponent implements OnInit {
     };
   }
 
-  updateIconClassMap(): void {
+  updateIcon(): void {
     const isCircle = (this.nzType === 'circle' || this.nzType === 'dashboard');
-    this.iconClassMap = {
-      'anticon-check'       : (this.nzStatus === 'success') && isCircle,
-      'anticon-cross'       : (this.nzStatus === 'exception') && isCircle,
-      'anticon-check-circle': (this.nzStatus === 'success') && !isCircle,
-      'anticon-cross-circle': (this.nzStatus === 'exception') && !isCircle
-    };
+    let ret = '';
+    if (this.nzStatus === 'success') { ret = 'check'; }
+    if (this.nzStatus === 'exception') { ret = 'close'; }
+    if (ret) {
+      if (!isCircle) {
+        ret += '-circle';
+        this.iconTheme = 'fill';
+      } else {
+        this.iconTheme = 'outline';
+      }
+    }
+    this.icon = ret;
   }
 
   ngOnInit(): void {
     this.updatePathStyles();
-    this.updateIconClassMap();
+    this.updateIcon();
   }
 
 }

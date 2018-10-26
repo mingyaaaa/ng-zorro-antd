@@ -1,52 +1,40 @@
 import {
+  AfterContentInit,
   AfterViewInit,
   Component,
   ContentChildren,
   ElementRef,
   EventEmitter,
   HostBinding,
+  HostListener,
   Input,
-  NgZone,
   OnDestroy,
   Output,
   QueryList,
   Renderer2,
+  TemplateRef,
   ViewChild
 } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
-import { first } from 'rxjs/operators/first';
-
-import { toBoolean } from '../core/util/convert';
-
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { toBoolean, toNumber } from '../core/util/convert';
 import { NzCarouselContentDirective } from './nz-carousel-content.directive';
+
+export type SwipeDirection = 'swipeleft' | 'swiperight';
 
 @Component({
   selector           : 'nz-carousel',
   preserveWhitespaces: false,
-  template           : `
-    <div class="slick-initialized slick-slider" [class.slick-vertical]="nzVertical">
-      <div class="slick-list" #slickList tabindex="-1" (keydown)="onKeyDown($event)">
-        <div class="slick-track" [style.transform]="transform" #slickTrack>
-          <ng-content></ng-content>
-        </div>
-      </div>
-      <ul class="slick-dots" *ngIf="nzDots">
-        <li
-          *ngFor="let content of slideContents; let i =index"
-          [class.slick-active]="content.isActive"
-          (click)="setActive(content,i)">
-          <button>{{i + 1}}</button>
-        </li>
-      </ul>
-    </div>`,
+  templateUrl        : './nz-carousel.component.html',
   host               : {
     '[class.ant-carousel]': 'true'
   },
   styles             : [
-      `
+    `
       :host {
         display: block;
         position: relative;
+        overflow: hidden;
         width: 100%;
         height: 100%;
       }
@@ -67,21 +55,29 @@ import { NzCarouselContentDirective } from './nz-carousel-content.directive';
     `
   ]
 })
-export class NzCarouselComponent implements AfterViewInit, OnDestroy {
+export class NzCarouselComponent implements AfterViewInit, OnDestroy, AfterContentInit {
   private _autoPlay = false;
+  private _autoPlaySpeed = 3000;
   private _dots = true;
   private _vertical = false;
   private _effect = 'scrollx';
-  slideContentsSubscription: Subscription;
+  private unsubscribe$ = new Subject<void>();
+
   activeIndex = 0;
   transform = 'translate3d(0px, 0px, 0px)';
-  interval;
+  timeout;
 
   @ContentChildren(NzCarouselContentDirective) slideContents: QueryList<NzCarouselContentDirective>;
   @ViewChild('slickList') slickList: ElementRef;
   @ViewChild('slickTrack') slickTrack: ElementRef;
   @Output() nzAfterChange: EventEmitter<number> = new EventEmitter();
   @Output() nzBeforeChange: EventEmitter<{ from: number; to: number }> = new EventEmitter();
+  @Input() nzEnableSwipe = true;
+
+  @HostListener('window:resize', [ '$event' ])
+  onWindowResize(e: UIEvent): void {
+    this.renderContent();
+  }
 
   get nextIndex(): number {
     return this.activeIndex < this.slideContents.length - 1 ? (this.activeIndex + 1) : 0;
@@ -90,6 +86,8 @@ export class NzCarouselComponent implements AfterViewInit, OnDestroy {
   get prevIndex(): number {
     return this.activeIndex > 0 ? (this.activeIndex - 1) : (this.slideContents.length - 1);
   }
+
+  @Input() nzDotRender: TemplateRef<{ $implicit: number }>;
 
   @Input()
   set nzDots(value: boolean) {
@@ -118,6 +116,16 @@ export class NzCarouselComponent implements AfterViewInit, OnDestroy {
 
   get nzAutoPlay(): boolean {
     return this._autoPlay;
+  }
+
+  @Input()
+  set nzAutoPlaySpeed(value: number) {
+    this._autoPlaySpeed = toNumber(value, null);
+    this.setUpAutoPlay();
+  }
+
+  get nzAutoPlaySpeed(): number {
+    return this._autoPlaySpeed;
   }
 
   @Input()
@@ -153,7 +161,6 @@ export class NzCarouselComponent implements AfterViewInit, OnDestroy {
 
   renderContent(): void {
     if (this.slideContents && this.slideContents.length) {
-      this.slideContents.first.isActive = true;
       this.slideContents.forEach((content, i) => {
         content.width = this.elementRef.nativeElement.offsetWidth;
         if (this.nzEffect === 'fade') {
@@ -187,11 +194,11 @@ export class NzCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   setUpAutoPlay(): void {
-    this.clearInterval();
-    if (this.nzAutoPlay) {
-      this.interval = setInterval(_ => {
+    this.clearTimeout();
+    if (this.nzAutoPlay && this.nzAutoPlaySpeed > 0) {
+      this.timeout = setTimeout(_ => {
         this.setActive(this.slideContents.toArray()[ this.nextIndex ], this.nextIndex);
-      }, 3000);
+      }, this.nzAutoPlaySpeed);
     }
   }
 
@@ -202,10 +209,10 @@ export class NzCarouselComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  clearInterval(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
+  clearTimeout(): void {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
     }
   }
 
@@ -233,24 +240,56 @@ export class NzCarouselComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  constructor(public elementRef: ElementRef, private renderer: Renderer2, private zone: NgZone) {
+  swipe(action: SwipeDirection = 'swipeleft'): void {
+    if (!this.nzEnableSwipe) { return; }
+    if (action === 'swipeleft') { this.next(); }
+    if (action === 'swiperight') { this.pre(); }
+  }
+
+  /* tslint:disable:no-any */
+  swipeInProgress(e: any): void {
+    if (this.nzEffect === 'scrollx') {
+      const final = e.isFinal;
+      const scrollWidth = final ? 0 : e.deltaX * 1.2;
+      const totalWidth = this.elementRef.nativeElement.offsetWidth;
+      if (this.nzVertical) {
+        const totalHeight = this.elementRef.nativeElement.offsetHeight;
+        const scrollPercent = scrollWidth / totalWidth;
+        const scrollHeight =  scrollPercent * totalHeight;
+        this.transform = `translate3d(0px, ${-this.activeIndex * totalHeight + scrollHeight}px, 0px)`;
+      } else {
+        this.transform = `translate3d(${-this.activeIndex * totalWidth + scrollWidth}px, 0px, 0px)`;
+      }
+    }
+    if (e.isFinal) {
+      this.setUpAutoPlay();
+    } else {
+      this.clearTimeout();
+    }
+  }
+
+  constructor(public elementRef: ElementRef, private renderer: Renderer2) {
+  }
+
+  ngAfterContentInit(): void {
+    if (this.slideContents && this.slideContents.length) {
+      this.slideContents.first.isActive = true;
+    }
   }
 
   ngAfterViewInit(): void {
-    this.slideContentsSubscription = this.slideContents.changes.subscribe(() => {
+    this.slideContents.changes
+    .pipe(takeUntil(this.unsubscribe$))
+    .subscribe(() => {
       this.renderContent();
     });
-    this.zone.onStable.pipe(first()).subscribe(() => {
-      this.renderContent();
-    });
+    this.renderContent();
   }
 
   ngOnDestroy(): void {
-    if (this.slideContentsSubscription) {
-      this.slideContentsSubscription.unsubscribe();
-      this.slideContentsSubscription = null;
-    }
-    this.clearInterval();
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+    this.clearTimeout();
   }
 
 }

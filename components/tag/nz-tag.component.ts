@@ -36,18 +36,7 @@ import { toBoolean } from '../core/util/convert';
       animate('300ms cubic-bezier(0.78, 0.14, 0.15, 0.86)')
     ])
   ]) ],
-  template           : `
-    <div
-      *ngIf="!closed"
-      [ngClass]="classMap"
-      #wrapperElement
-      [@tagAnimation]
-      (@tagAnimation.done)="afterAnimation($event)"
-      (click)="updateCheckedStatus()">
-      <ng-content></ng-content>
-      <i class="anticon anticon-cross" *ngIf="nzMode==='closeable'" (click)="closeTag($event)"></i>
-    </div>
-  `
+  templateUrl        : './nz-tag.component.html'
 })
 export class NzTagComponent implements OnInit, AfterViewInit {
   private _color: string;
@@ -124,10 +113,11 @@ export class NzTagComponent implements OnInit, AfterViewInit {
   }
 
   updateClassMap(): void {
+    const isPresetColor = this.isPresetColor(this.nzColor);
     this.classMap = {
       [ `ant-tag` ]                  : true,
-      [ `ant-tag-has-color` ]        : this.isPreset === false,
-      [ `ant-tag-${this.nzColor}` ]  : this.isPreset === true,
+      [ `ant-tag-has-color` ]        : this.nzColor && !isPresetColor,
+      [ `ant-tag-${this.nzColor}` ]  : isPresetColor,
       [ `ant-tag-checkable` ]        : this.nzMode === 'checkable',
       [ `ant-tag-checkable-checked` ]: this.nzChecked
     };
