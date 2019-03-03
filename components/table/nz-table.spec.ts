@@ -1,7 +1,6 @@
 import { Component, Injector, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { fakeAsync, tick, TestBed } from '@angular/core/testing';
+import { async, fakeAsync, tick, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { NzMeasureScrollbarService } from '../core/services/nz-measure-scrollbar.service';
 import en_US from '../i18n/languages/en_US';
 import { NzI18nService } from '../i18n/nz-i18n.service';
 import { NzTableComponent } from './nz-table.component';
@@ -9,11 +8,10 @@ import { NzTableModule } from './nz-table.module';
 
 describe('nz-table', () => {
   let injector: Injector;
-  beforeEach(fakeAsync(() => {
+  beforeEach(async(() => {
     injector = TestBed.configureTestingModule({
       imports     : [ NzTableModule ],
-      declarations: [ NzTestTableBasicComponent, NzTestTableScrollComponent ],
-      providers   : [ NzMeasureScrollbarService ]
+      declarations: [ NzTestTableBasicComponent, NzTestTableScrollComponent, NzTableSpecCrashComponent ]
     });
     TestBed.compileComponents();
   }));
@@ -29,7 +27,7 @@ describe('nz-table', () => {
     });
     it('should className correct', () => {
       fixture.detectChanges();
-      expect(table.nativeElement.firstElementChild.classList).toContain('ant-table-wrapper');
+      expect(table.nativeElement.classList).toContain('ant-table-wrapper');
     });
     it('should pageIndex set work', () => {
       fixture.detectChanges();
@@ -113,14 +111,6 @@ describe('nz-table', () => {
       expect(testComponent.pageSizeChange).toHaveBeenCalledTimes(0);
       expect(testComponent.pageIndexChange).toHaveBeenCalledTimes(1);
     }));
-    it('should warn if nzData is not array', () => {
-      console.warn = jasmine.createSpy('warn');
-      fixture.detectChanges();
-      expect(console.warn).toHaveBeenCalledTimes(0);
-      testComponent.dataSet = null;
-      fixture.detectChanges();
-      expect(console.warn).toHaveBeenCalledTimes(1);
-    });
     it('should pagination simple work', () => {
       fixture.detectChanges();
       expect(table.nativeElement.querySelector('.ant-pagination-simple')).toBeNull();
@@ -147,7 +137,7 @@ describe('nz-table', () => {
     it('should emitPageSize work', () => {
       fixture.detectChanges();
       expect(testComponent.pageSizeChange).toHaveBeenCalledTimes(0);
-      testComponent.nzTableComponent.emitPageSize(10);
+      testComponent.nzTableComponent.emitPageSizeOrIndex(100, 1);
       expect(testComponent.pageSizeChange).toHaveBeenCalledTimes(1);
     });
     it('should size work', () => {
@@ -159,7 +149,7 @@ describe('nz-table', () => {
       expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-middle');
       testComponent.size = 'default';
       fixture.detectChanges();
-      expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-large');
+      expect(table.nativeElement.querySelector('.ant-table').classList).toContain('ant-table-default');
     });
     it('should footer & title work', () => {
       fixture.detectChanges();
@@ -174,7 +164,7 @@ describe('nz-table', () => {
     it('should noResult work', () => {
       testComponent.dataSet = [];
       fixture.detectChanges();
-      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText).toBe('暂无数据');
+      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText.trim()).toBe('暂无数据');
       testComponent.noResult = 'test';
       fixture.detectChanges();
       expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText).toBe('test');
@@ -187,7 +177,7 @@ describe('nz-table', () => {
     });
     it('should width config', () => {
       fixture.detectChanges();
-      expect(table.nativeElement.querySelectorAll('col').length).toBe(0);
+      expect(table.nativeElement.querySelectorAll('col').length).toBe(4);
       testComponent.widthConfig = [ '100px', '50px' ];
       fixture.detectChanges();
       expect(table.nativeElement.querySelectorAll('col')[ 0 ].style.width).toBe('100px');
@@ -213,10 +203,10 @@ describe('nz-table', () => {
     it('#18n', () => {
       testComponent.dataSet = [];
       fixture.detectChanges();
-      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText).toBe('暂无数据');
+      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText.trim()).toBe('暂无数据');
       injector.get(NzI18nService).setLocale(en_US);
       fixture.detectChanges();
-      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText).toBe(en_US.Table.emptyText);
+      expect(table.nativeElement.querySelector('.ant-table-placeholder').innerText.trim()).toBe('No Data');
     });
   });
   describe('scroll nz-table', () => {
@@ -302,6 +292,19 @@ describe('nz-table', () => {
       fixture.detectChanges();
       const tableBody = table.nativeElement.querySelector('.ant-table-body');
       expect(tableBody.scrollWidth).toBe(tableBody.clientWidth);
+    });
+  });
+  describe('double binding nz-table', () => {
+    let fixture;
+    let testComponent;
+    beforeEach(() => {
+      fixture = TestBed.createComponent(NzTableSpecCrashComponent);
+      fixture.detectChanges();
+      testComponent = fixture.debugElement.componentInstance;
+    });
+    it('should not crash when double binding pageSize and pageIndex', () => {
+      fixture.detectChanges();
+      expect(testComponent.pageIndexChange).toHaveBeenCalledTimes(0);
     });
   });
 });
@@ -449,5 +452,43 @@ export class NzTestTableScrollComponent implements OnInit {
         address: `London, Park Lane no. ${i}`
       });
     }
+  }
+}
+
+/** https://github.com/NG-ZORRO/ng-zorro-antd/issues/3004 **/
+@Component({
+  template: `
+    <nz-table #nzTable [nzData]="data" [(nzPageIndex)]="pageIndex" [(nzPageSize)]="pageSize" (nzPageIndexChange)="pageIndexChange">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>NAME</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let item of nzTable.data">
+          <tr>
+            <td>{{item.id}}</td>
+            <td>{{item.name}}</td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </nz-table>
+  `
+})
+export class NzTableSpecCrashComponent {
+  data = [];
+  pageIndex = 1;
+  pageSize = 10;
+  pageIndexChange = jasmine.createSpy('pageSize callback');
+
+  constructor() {
+    setTimeout(() => {
+      this.data = new Array(100).fill(1).map((_, i) => ({
+        id  : i + 1,
+        name: `name ${i + 1}`
+      }));
+    }, 1000);
+
   }
 }

@@ -1,5 +1,5 @@
 import { Directionality } from '@angular/cdk/bidi';
-import { DOWN_ARROW, ENTER, ESCAPE, LEFT_ARROW, RIGHT_ARROW, TAB, UP_ARROW } from '@angular/cdk/keycodes';
+import { DOWN_ARROW, ENTER, ESCAPE, RIGHT_ARROW, TAB, UP_ARROW } from '@angular/cdk/keycodes';
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { ScrollDispatcher } from '@angular/cdk/scrolling';
 import {
@@ -20,7 +20,7 @@ import {
   typeInElement,
   MockNgZone
 } from '../core/testing';
-import { NzIconModule } from '../icon/nz-icon.module';
+import { NzIconTestModule } from '../icon/nz-icon-test.module';
 
 import { NzInputModule } from '../input';
 import { NzMentionTriggerDirective } from './nz-mention-trigger';
@@ -36,7 +36,7 @@ describe('mention', () => {
   beforeEach(async(() => {
     const dir = 'ltr';
     TestBed.configureTestingModule({
-      imports     : [ NzMentionModule, NzInputModule, NoopAnimationsModule, FormsModule, ReactiveFormsModule, NzIconModule ],
+      imports     : [ NzMentionModule, NzInputModule, NoopAnimationsModule, FormsModule, ReactiveFormsModule, NzIconTestModule ],
       declarations: [
         NzTestSimpleMentionComponent,
         NzTestPropertyMentionComponent
@@ -166,7 +166,7 @@ describe('mention', () => {
     let DOWN_ARROW_EVENT: KeyboardEvent;
     let UP_ARROW_EVENT: KeyboardEvent;
     let ENTER_EVENT: KeyboardEvent;
-    let LEFT_EVENT: KeyboardEvent;
+    // let LEFT_EVENT: KeyboardEvent;
     let RIGHT_EVENT: KeyboardEvent;
 
     beforeEach(fakeAsync(() => {
@@ -177,7 +177,7 @@ describe('mention', () => {
       DOWN_ARROW_EVENT = createKeyboardEvent('keydown', DOWN_ARROW);
       UP_ARROW_EVENT = createKeyboardEvent('keydown', UP_ARROW);
       ENTER_EVENT = createKeyboardEvent('keydown', ENTER);
-      LEFT_EVENT = createKeyboardEvent('keydown', LEFT_ARROW);
+      // LEFT_EVENT = createKeyboardEvent('keydown', LEFT_ARROW);
       RIGHT_EVENT = createKeyboardEvent('keydown', RIGHT_ARROW);
 
       fixture.detectChanges();

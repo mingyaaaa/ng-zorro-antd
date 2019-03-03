@@ -1,10 +1,9 @@
 // tslint:disable
-import { fakeAsync, tick, TestBed, ComponentFixture, async } from '@angular/core/testing';
+import { fakeAsync, tick, TestBed, ComponentFixture } from '@angular/core/testing';
 import { Component, DebugElement, ViewChild } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { NzAnchorModule } from './nz-anchor.module';
 import { NzAnchorComponent } from './nz-anchor.component';
-import { NzAnchorLinkComponent } from './nz-anchor-link.component';
 import { NzScrollService } from '../core/scroll/nz-scroll.service';
 
 const throttleTime = 51;
@@ -32,9 +31,9 @@ describe('anchor', () => {
   describe('[default]', () => {
     it(`should scolling to target via click a link`, () => {
       spyOn(srv, 'scrollTo').and.callFake((
-        containerEl: Element | Window,
-        targetTopValue: number = 0,
-        easing?: any,
+        _containerEl: Element | Window,
+        _targetTopValue: number = 0,
+        _easing?: any,
         callback?: () => void
       ) => {
         callback();
@@ -61,6 +60,19 @@ describe('anchor', () => {
         done();
       }, throttleTime);
     });
+
+    it('should clean actived when leave all anchor', fakeAsync(() => {
+      spyOn(context.comp, 'clearActive' as any);
+      page.scrollTo();
+      tick(throttleTime);
+      fixture.detectChanges();
+      expect(context.comp['clearActive']).not.toHaveBeenCalled();
+      window.scrollTo(0, 0);
+      window.dispatchEvent(new Event('scroll'));
+      tick(throttleTime);
+      fixture.detectChanges();
+      expect(context.comp['clearActive']).toHaveBeenCalled();
+    }));
 
     it(`won't scolling when is not exists link`, () => {
       spyOn(srv, 'getScroll');
@@ -198,12 +210,12 @@ describe('anchor', () => {
       expect(el).not.toBeNull();
       return el.nativeElement as HTMLElement;
     }
-    to(href: string = '#何时使用'): this {
+    to(href: string = '#basic'): this {
       this.getEl(`nz-affix [href="${href}"]`).click();
       fixture.detectChanges();
       return this;
     }
-    scrollTo(href: string = '#何时使用'): this {
+    scrollTo(href: string = '#basic'): this {
       const toNode = dl.query(By.css(href));
       (toNode.nativeElement as HTMLElement).scrollIntoView();
       fixture.detectChanges();

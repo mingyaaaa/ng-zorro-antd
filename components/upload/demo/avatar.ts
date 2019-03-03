@@ -13,7 +13,7 @@ import { Observable, Observer } from 'rxjs';
     [nzBeforeUpload]="beforeUpload"
     (nzChange)="handleChange($event)">
     <ng-container *ngIf="!avatarUrl">
-      <i nz-icon type="plus"></i>
+      <i class="upload-icon" nz-icon [type]="loading ? 'loading' : 'plus'"></i>
       <div class="ant-upload-text">Upload</div>
     </ng-container>
     <img *ngIf="avatarUrl" [src]="avatarUrl" class="avatar">
@@ -21,15 +21,15 @@ import { Observable, Observer } from 'rxjs';
   `,
   styles: [
     `
-    :host ::ng-deep .avatar-uploader > .ant-upload, :host ::ng-deep .avatar {
+    .avatar {
       width: 128px;
       height: 128px;
     }
-    :host ::ng-deep .ant-upload-select-picture-card i {
+    .upload-icon {
       font-size: 32px;
       color: #999;
     }
-    :host ::ng-deep .ant-upload-select-picture-card .ant-upload-text {
+    .ant-upload-text {
       margin-top: 8px;
       color: #666;
     }
@@ -90,16 +90,21 @@ export class NzDemoUploadAvatarComponent {
   }
 
   handleChange(info: { file: UploadFile }): void {
-    if (info.file.status === 'uploading') {
-      this.loading = true;
-      return;
-    }
-    if (info.file.status === 'done') {
-      // Get this url from response in real world.
-      this.getBase64(info.file.originFileObj, (img: string) => {
+    switch (info.file.status) {
+      case 'uploading':
+        this.loading = true;
+        break;
+      case 'done':
+        // Get this url from response in real world.
+        this.getBase64(info.file.originFileObj, (img: string) => {
+          this.loading = false;
+          this.avatarUrl = img;
+        });
+        break;
+      case 'error':
+        this.msg.error('Network error');
         this.loading = false;
-        this.avatarUrl = img;
-      });
+        break;
     }
   }
 }

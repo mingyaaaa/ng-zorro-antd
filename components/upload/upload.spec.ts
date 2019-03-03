@@ -9,13 +9,14 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError, Observable, Observer } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
-import { NzI18nModule, NzI18nService } from '../i18n';
 import en_US from '../i18n/languages/en_US';
-import { NzIconModule } from '../icon/nz-icon.module';
+import { NzI18nModule } from '../i18n/nz-i18n.module';
+import { NzI18nService } from '../i18n/nz-i18n.service';
+import { NzIconTestModule } from '../icon/nz-icon-test.module';
 import { NzProgressModule } from '../progress/nz-progress.module';
 import { NzToolTipModule } from '../tooltip/nz-tooltip.module';
 
-import { ShowUploadListInterface, UploadChangeParam, UploadFile, UploadFilter, UploadListType, UploadType, UploadXHRArgs, ZipButtonOptions } from './interface';
+import { ShowUploadListInterface, UploadChangeParam, UploadFile, UploadFilter, UploadListType, UploadType, ZipButtonOptions } from './interface';
 import { NzUploadBtnComponent } from './nz-upload-btn.component';
 import { NzUploadListComponent } from './nz-upload-list.component';
 import { NzUploadComponent } from './nz-upload.component';
@@ -54,7 +55,7 @@ describe('upload', () => {
     let httpMock: HttpTestingController;
     beforeEach(() => {
       injector = TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, HttpClientTestingModule, CommonModule, FormsModule, NzToolTipModule, NzProgressModule, NzI18nModule, NzIconModule],
+        imports: [NoopAnimationsModule, HttpClientTestingModule, CommonModule, FormsModule, NzToolTipModule, NzProgressModule, NzI18nModule, NzIconTestModule],
         declarations: [NzUploadComponent, NzUploadListComponent, TestUploadComponent, NzUploadBtnComponent]
       });
       fixture = TestBed.createComponent(TestUploadComponent);
@@ -193,7 +194,7 @@ describe('upload', () => {
     describe('property', () => {
       describe('[nzData]', () => {
         it('should custom form data vis function', () => {
-          instance.nzData = (file: any) => {
+          instance.nzData = () => {
             return { a: 1 };
           };
           fixture.detectChanges();
@@ -216,7 +217,7 @@ describe('upload', () => {
 
         it('should comst fileter', () => {
           instance.nzFilter = [
-            { name: 'custom', fn: (a: any) => [] }
+            { name: 'custom', fn: () => [] }
           ];
           fixture.detectChanges();
           expect(instance._beforeUploadList.length).toBe(0);
@@ -233,7 +234,7 @@ describe('upload', () => {
 
       describe('[nzHeaders]', () => {
         it('should custom form data vis function', () => {
-          instance.nzHeaders = (file: any) => {
+          instance.nzHeaders = () => {
             return { a: '1' };
           };
           fixture.detectChanges();
@@ -293,9 +294,16 @@ describe('upload', () => {
           expect(instance._beforeUpload).toBe(false);
         });
         describe('using observable', () => {
+          it('can return true', () => {
+            spyOn(instance, 'nzChange');
+            instance.beforeUpload = (): Observable<any> => of(true);
+            fixture.detectChanges();
+            pageObject.postSmall();
+            expect(instance.nzChange).toHaveBeenCalled();
+          });
           it('can return same file', () => {
             let ret = false;
-            instance.beforeUpload = (file: UploadFile, fileList: UploadFile[]): Observable<any> => {
+            instance.beforeUpload = (file: UploadFile): Observable<any> => {
               ret = true;
               return of(file);
             };
@@ -305,7 +313,7 @@ describe('upload', () => {
           });
           it('can return a string file', () => {
             let ret = false;
-            instance.beforeUpload = (file: UploadFile, fileList: UploadFile[]): Observable<any> => {
+            instance.beforeUpload = (): Observable<any> => {
               ret = true;
               return of('file');
             };
@@ -315,7 +323,7 @@ describe('upload', () => {
           });
           it('can return a blob file', () => {
             let ret = false;
-            instance.beforeUpload = (file: UploadFile, fileList: UploadFile[]): Observable<any> => {
+            instance.beforeUpload = (): Observable<any> => {
               ret = true;
               return of(new Blob([JSON.stringify(1, null, 2)], {type : 'application/json'}));
             };
@@ -325,7 +333,7 @@ describe('upload', () => {
           });
           it('cancel upload when returan a false value', () => {
             expect(instance._nzChange).toBeUndefined();
-            instance.beforeUpload = (file: UploadFile, fileList: UploadFile[]): Observable<any> => {
+            instance.beforeUpload = (): Observable<any> => {
               return of(false);
             };
             fixture.detectChanges();
@@ -336,7 +344,7 @@ describe('upload', () => {
             let warnMsg = '';
             console.warn = jasmine.createSpy().and.callFake(res => warnMsg = res);
             expect(instance._nzChange).toBeUndefined();
-            instance.beforeUpload = (file: UploadFile, fileList: UploadFile[]): Observable<any> => {
+            instance.beforeUpload = (): Observable<any> => {
               return throwError('');
             };
             fixture.detectChanges();
@@ -428,7 +436,7 @@ describe('upload', () => {
             instance.nzFilter = [
               {
                 name: 'f1',
-                fn: (fileList: UploadFile[]) => {
+                fn: () => {
                   return new Observable((observer: Observer<UploadFile[]>) => {
                     observer.error('filter error');
                   });
@@ -490,7 +498,7 @@ describe('upload', () => {
         });
         it('should be return a Observable includes a delay operation', (done: () => void) => {
           const DELAY = 20;
-          instance.onRemove = (file: UploadFile) => of(true).pipe(delay(DELAY));
+          instance.onRemove = () => of(true).pipe(delay(DELAY));
           fixture.detectChanges();
           expect(dl.queryAll(By.css('.anticon-close')).length).toBe(INITCOUNT);
           dl.query(By.css('.anticon-close')).nativeElement.click();
@@ -565,7 +573,7 @@ describe('upload', () => {
 
     describe('[test boundary]', () => {
       it('clean a not exists request', () => {
-        instance.comp.upload.reqs.test = null;
+        instance.comp.uploadComp.reqs.test = null;
         instance.show = false;
         fixture.detectChanges();
         expect(true).toBe(true);
@@ -624,7 +632,7 @@ describe('upload', () => {
     let instance: TestUploadListComponent;
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [CommonModule, FormsModule, NzToolTipModule, NzProgressModule, NzI18nModule, NoopAnimationsModule, NzIconModule ],
+        imports: [CommonModule, FormsModule, NzToolTipModule, NzProgressModule, NzI18nModule, NoopAnimationsModule, NzIconTestModule ],
         declarations: [NzUploadListComponent, TestUploadListComponent]
       });
       fixture = TestBed.createComponent(TestUploadListComponent);
@@ -684,6 +692,36 @@ describe('upload', () => {
         expect(actions.length).toBe(0);
         expect(instance._onRemove).toBe(false);
       });
+      it('should be hide preview when is invalid image url', fakeAsync(() => {
+        instance.icons = {
+          showPreviewIcon: true,
+          showRemoveIcon: true,
+          hidePreviewIconInNonImage: false
+        };
+        instance.items = [
+          { url: '1.pdf' }
+        ];
+        fixture.detectChanges();
+        tick();
+        fixture.detectChanges();
+        const actions = dl.queryAll(By.css('.ant-upload-list-item-actions a'));
+        expect(actions.length).toBe(1);
+      }));
+      it('should be hide preview when is invalid image url', fakeAsync(() => {
+        instance.icons = {
+          showPreviewIcon: true,
+          showRemoveIcon: true,
+          hidePreviewIconInNonImage: true
+        };
+        instance.items = [
+          { url: '1.pdf' }
+        ];
+        fixture.detectChanges();
+        tick();
+        fixture.detectChanges();
+        const actions = dl.queryAll(By.css('.ant-upload-list-item-actions a'));
+        expect(actions.length).toBe(0);
+      }));
     });
 
     describe('[onPreview]', () => {
@@ -699,6 +737,41 @@ describe('upload', () => {
         dl.query(By.css('.ant-upload-list-item-actions a')).nativeElement.click();
         expect(instance._onPreview).toBe(false);
       });
+      it('should support linkProps as object', fakeAsync(() => {
+        instance.items = [
+          {
+            uid: '-1',
+            name: 'foo.png',
+            status: 'done',
+            url: 'http://www.baidu.com/xxx.png',
+            linkProps: {
+              download: 'image'
+            }
+          }
+        ];
+        fixture.detectChanges();
+        tick();
+        fixture.detectChanges();
+        const el = dl.query(By.css('.ant-upload-list-item-name')).nativeElement as HTMLElement;
+        expect(el.attributes.getNamedItem('download').textContent).toBe('image');
+      }));
+      it('should support linkProps as json stringify', fakeAsync(() => {
+        const linkPropsString = JSON.stringify({ download: 'image' });
+        instance.items = [
+          {
+            uid: '-1',
+            name: 'foo.png',
+            status: 'done',
+            url: 'http://www.baidu.com/xxx.png',
+            linkProps: linkPropsString
+          }
+        ];
+        fixture.detectChanges();
+        tick();
+        fixture.detectChanges();
+        const el = dl.query(By.css('.ant-upload-list-item-name')).nativeElement as HTMLElement;
+        expect(el.attributes.getNamedItem('download').textContent).toBe('image');
+      }));
     });
 
     describe('[onRemove]', () => {
@@ -715,6 +788,61 @@ describe('upload', () => {
         expect(instance._onRemove).toBe(false);
       });
     });
+
+    describe('[isImageUrl]', () => {
+      describe('via image type', () => {
+        it('should be true when file object type value is a valid image', () => {
+          expect(instance.comp.isImageUrl({ type: 'image' } as any)).toBe(true);
+        });
+      });
+      describe('via thumbUrl or url', () => {
+        it('should be false when not found url & thumbUrl', () => {
+          expect(instance.comp.isImageUrl({ } as any)).toBe(false);
+        });
+        describe('via extension', () => {
+          it('with valid image extension', () => {
+            expect(instance.comp.isImageUrl({ url: '1.svg' } as any)).toBe(true);
+          });
+          it('with invalid image extension', () => {
+            expect(instance.comp.isImageUrl({ url: '1.pdf' } as any)).toBe(false);
+          });
+        });
+        describe('when url is base64', () => {
+          it('with valid image base64', () => {
+            expect(instance.comp.isImageUrl({ url: 'data:image/png;base64,1' } as any)).toBe(true);
+          });
+          it('with invalid image base64', () => {
+            expect(instance.comp.isImageUrl({ url: 'data:application/pdf;base64,1' } as any)).toBe(false);
+          });
+        });
+      });
+    });
+
+    describe('[genThumb]', () => {
+      class MockFR {
+        result = '1';
+        onloadend(): void { }
+        readAsDataURL(): void {
+          this.onloadend();
+        }
+      }
+      it('should be generate thumb when is valid image data', () => {
+        spyOn(window as any, 'FileReader').and.returnValue(new MockFR());
+        instance.listType = 'picture';
+        instance.items = [ { originFileObj: new File([''], '1.png', { type: 'image' }), thgitumbUrl: undefined } ];
+        fixture.detectChanges();
+        expect(instance.items[0].thumbUrl).toBe('1');
+      });
+      it('should be ingore thumb when is invalid image data', () => {
+        const mockFR = new MockFR();
+        mockFR.result = '';
+        spyOn(window as any, 'FileReader').and.returnValue(mockFR);
+        instance.listType = 'picture';
+        instance.items = [ { originFileObj: new File([''], '1.pdf', { type: 'pdf' }), thumbUrl: undefined } ];
+        fixture.detectChanges();
+        expect(instance.items[0].thumbUrl).toBe('');
+      });
+    });
   });
 
   describe('btn', () => {
@@ -724,7 +852,7 @@ describe('upload', () => {
       let instance: TestUploadBtnComponent;
       beforeEach(() => {
         TestBed.configureTestingModule({
-          imports: [HttpClientTestingModule, NzIconModule],
+          imports: [HttpClientTestingModule, NzIconTestModule],
           declarations: [NzUploadBtnComponent, TestUploadBtnComponent]
         });
         fixture = TestBed.createComponent(TestUploadBtnComponent);
@@ -969,7 +1097,7 @@ describe('upload', () => {
           multiple: true,
           withCredentials: true,
           beforeUpload: () => true,
-          onStart: (file: {}) => {},
+          onStart: () => {},
           onProgress: () => {},
           onSuccess: () => {},
           onError: () => {}
@@ -1048,7 +1176,7 @@ describe('upload', () => {
       it('should be warn "Must return Subscription type in [nzCustomRequest] property"', () => {
         let warnMsg = '';
         console.warn = jasmine.createSpy().and.callFake(res => warnMsg = res);
-        comp.options.customRequest = ((item: UploadXHRArgs) => { }) as any;
+        comp.options.customRequest = (() => {}) as any;
         comp.onChange(PNGSMALL as any);
         expect(warnMsg).toContain(`Must return Subscription type`);
       });
@@ -1100,7 +1228,7 @@ class TestUploadComponent {
   nzAction = '/upload';
   _beforeUpload = false;
   _beforeUploadList: UploadFile[] = [];
-  beforeUpload: any = (file: UploadFile, fileList: UploadFile[]): any => {
+  beforeUpload: any = (_file: UploadFile, fileList: UploadFile[]): any => {
     this._beforeUpload = true;
     this._beforeUploadList = fileList;
     return true;
@@ -1118,11 +1246,11 @@ class TestUploadComponent {
   nzShowButton = true;
   nzWithCredentials = false;
   _onPreview = false;
-  onPreview = (file: UploadFile): void => {
+  onPreview = (): void => {
     this._onPreview = true;
   }
   _onRemove = false;
-  onRemove: (file: UploadFile) => boolean | Observable<boolean> = (file: UploadFile): boolean => {
+  onRemove: (file: UploadFile) => boolean | Observable<boolean> = (): boolean => {
     this._onRemove = true;
     return true;
   }
@@ -1140,7 +1268,6 @@ class TestUploadComponent {
   [icons]="icons"
   [onPreview]="onPreview"
   [onRemove]="onRemove"></nz-upload-list>`,
-  styleUrls: [ './style/index.less' ],
   encapsulation: ViewEncapsulation.None
 })
 class TestUploadListComponent {
@@ -1173,11 +1300,11 @@ class TestUploadListComponent {
     showRemoveIcon: true
   };
   _onPreview = false;
-  onPreview = (file: UploadFile): void => {
+  onPreview = (): void => {
     this._onPreview = true;
   }
   _onRemove = false;
-  onRemove: any = (file: UploadFile): void => {
+  onRemove: any = (): void => {
     this._onRemove = true;
   }
 }

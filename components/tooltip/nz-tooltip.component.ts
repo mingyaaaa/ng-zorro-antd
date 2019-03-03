@@ -11,24 +11,27 @@ import {
   Component,
   ContentChild,
   EventEmitter,
+  Host,
   Input,
+  OnChanges,
+  Optional,
   Output,
   TemplateRef,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-
-import { fadeAnimation } from '../core/animation/fade-animations';
-import { DEFAULT_4_POSITIONS, POSITION_MAP } from '../core/overlay/overlay-position-map';
+import { zoomBigMotion } from '../core/animation/zoom';
+import { NzNoAnimationDirective } from '../core/no-animation/nz-no-animation.directive';
+import { getPlacementName, DEFAULT_TOOLTIP_POSITIONS, POSITION_MAP } from '../core/overlay/overlay-position';
 import { isNotNil } from '../core/util/check';
 import { toBoolean } from '../core/util/convert';
 
 @Component({
+  selector           : 'nz-tooltip',
   changeDetection    : ChangeDetectionStrategy.OnPush,
   encapsulation      : ViewEncapsulation.None,
-  selector           : 'nz-tooltip',
-  animations         : [ fadeAnimation ],
+  animations         : [ zoomBigMotion ],
   templateUrl        : './nz-tooltip.component.html',
   preserveWhitespaces: false,
   styles             : [ `
@@ -37,10 +40,10 @@ import { toBoolean } from '../core/util/convert';
     }
   ` ]
 })
-export class NzToolTipComponent {
+export class NzToolTipComponent implements OnChanges {
   _hasBackdrop = false;
   _prefix = 'ant-tooltip-placement';
-  _positions: ConnectionPositionPair[] = [ ...DEFAULT_4_POSITIONS ];
+  _positions: ConnectionPositionPair[] = [ ...DEFAULT_TOOLTIP_POSITIONS ];
   _classMap = {};
   _placement = 'top';
   _trigger = 'hover';
@@ -48,14 +51,11 @@ export class NzToolTipComponent {
   visibleSource = new BehaviorSubject<boolean>(false);
   visible$: Observable<boolean> = this.visibleSource.asObservable();
   @ViewChild('overlay') overlay: CdkConnectedOverlay;
-
   @Input() @ContentChild('nzTemplate') nzTitle: string | TemplateRef<void>;
   @Input() nzOverlayClassName = '';
   @Input() nzOverlayStyle: { [ key: string ]: string } = {};
   @Input() nzMouseEnterDelay = 0.15; // second
   @Input() nzMouseLeaveDelay = 0.1; // second
-
-  @Output() readonly nzVisibleChange = new EventEmitter<boolean>();
 
   @Input()
   set nzVisible(value: boolean) {
@@ -84,12 +84,23 @@ export class NzToolTipComponent {
   set nzPlacement(value: string) {
     if (value !== this._placement) {
       this._placement = value;
-      this._positions.unshift(POSITION_MAP[ this.nzPlacement ] as ConnectionPositionPair);
+      this._positions = [ POSITION_MAP[ this.nzPlacement ], ...this._positions ];
     }
   }
 
   get nzPlacement(): string {
     return this._placement;
+  }
+
+  @Output() readonly nzVisibleChange = new EventEmitter<boolean>();
+
+  constructor(public cdr: ChangeDetectorRef, @Host() @Optional() public noAnimation?: NzNoAnimationDirective) {
+  }
+
+  ngOnChanges(): void {
+    Promise.resolve().then(() => {
+      this.updatePosition();
+    });
   }
 
   // Manually force updating current overlay's position
@@ -99,16 +110,10 @@ export class NzToolTipComponent {
     }
   }
 
-  onPositionChange($event: ConnectedOverlayPositionChange): void {
-    for (const key in POSITION_MAP) {
-      if (JSON.stringify($event.connectionPair) === JSON.stringify(POSITION_MAP[ key ])) {
-        this.nzPlacement = key;
-        break;
-      }
-    }
+  onPositionChange(position: ConnectedOverlayPositionChange): void {
+    this.nzPlacement = getPlacementName(position);
     this.setClassMap();
-    /** TODO may cause performance problem */
-    this.cdr.detectChanges();
+    this.cdr.detectChanges(); // TODO: performance?
   }
 
   show(): void {
@@ -140,8 +145,6 @@ export class NzToolTipComponent {
   setOverlayOrigin(origin: CdkOverlayOrigin): void {
     this.overlayOrigin = origin;
   }
-
-  constructor(public cdr: ChangeDetectorRef) {}
 
   protected isContentEmpty(): boolean {
     return this.nzTitle instanceof TemplateRef ? false : (this.nzTitle === '' || !isNotNil(this.nzTitle));

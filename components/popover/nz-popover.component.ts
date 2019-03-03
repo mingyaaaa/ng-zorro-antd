@@ -1,11 +1,23 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ContentChild, Input, TemplateRef, ViewEncapsulation } from '@angular/core';
-import { fadeAnimation } from '../core/animation/fade-animations';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ContentChild,
+  Host,
+  Input,
+  Optional,
+  TemplateRef,
+  ViewEncapsulation
+} from '@angular/core';
+
+import { zoomBigMotion } from '../core/animation/zoom';
+import { NzNoAnimationDirective } from '../core/no-animation/nz-no-animation.directive';
 import { isNotNil } from '../core/util';
 import { NzToolTipComponent } from '../tooltip/nz-tooltip.component';
 
 @Component({
   selector           : 'nz-popover',
-  animations         : [ fadeAnimation ],
+  animations         : [ zoomBigMotion ],
   templateUrl        : './nz-popover.component.html',
   changeDetection    : ChangeDetectionStrategy.OnPush,
   encapsulation      : ViewEncapsulation.None,
@@ -19,11 +31,12 @@ import { NzToolTipComponent } from '../tooltip/nz-tooltip.component';
 export class NzPopoverComponent extends NzToolTipComponent {
   _prefix = 'ant-popover-placement';
 
-  @Input() @ContentChild('neverUsedTemplate') nzTitle: string | TemplateRef<void>; // used to remove NzToolTipComponent @ContentChild('nzTemplate')
+  /** Used to remove NzToolTipComponent @ContentChild('nzTemplate') */
+  @Input() @ContentChild('neverUsedTemplate') nzTitle: string | TemplateRef<void>;
   @Input() @ContentChild('nzTemplate') nzContent: string | TemplateRef<void>;
 
-  constructor(cdr: ChangeDetectorRef) {
-    super(cdr);
+  constructor(cdr: ChangeDetectorRef, @Host() @Optional() public noAnimation?: NzNoAnimationDirective) {
+    super(cdr, noAnimation);
   }
 
   protected isContentEmpty(): boolean {

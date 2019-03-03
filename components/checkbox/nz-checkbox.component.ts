@@ -7,7 +7,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -38,7 +37,7 @@ import { NzCheckboxWrapperComponent } from './nz-checkbox-wrapper.component';
     }
   ],
   host               : {
-    '[class.ant-checkbox-wrapper]': 'true'
+    '(click)': 'hostClick($event)'
   }
 })
 export class NzCheckboxComponent implements OnInit, ControlValueAccessor, OnChanges, AfterViewInit, OnDestroy {
@@ -55,12 +54,15 @@ export class NzCheckboxComponent implements OnInit, ControlValueAccessor, OnChan
   @Input() @InputBoolean() nzIndeterminate = false;
   @Input() @InputBoolean() nzChecked = false;
 
-  @HostListener('click', [ '$event' ])
-  onClick(e: MouseEvent): void {
+  hostClick(e: MouseEvent): void {
     e.preventDefault();
     this.focus();
+    this.innerCheckedChange(!this.nzChecked);
+  }
+
+  innerCheckedChange(checked: boolean): void {
     if (!this.nzDisabled) {
-      this.nzChecked = !this.nzChecked;
+      this.nzChecked = checked;
       this.onChange(this.nzChecked);
       this.nzCheckedChange.emit(this.nzChecked);
       if (this.nzCheckboxWrapperComponent) {
@@ -112,6 +114,7 @@ export class NzCheckboxComponent implements OnInit, ControlValueAccessor, OnChan
   }
 
   constructor(private elementRef: ElementRef<HTMLElement>, private renderer: Renderer2, @Optional() private nzCheckboxWrapperComponent: NzCheckboxWrapperComponent, private cdr: ChangeDetectorRef, private focusMonitor: FocusMonitor) {
+    renderer.addClass(elementRef.nativeElement, 'ant-checkbox-wrapper');
   }
 
   ngOnInit(): void {

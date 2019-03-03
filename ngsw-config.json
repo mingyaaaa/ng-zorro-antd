@@ -24,6 +24,10 @@
     }
   ],
   "navigationUrls": [
-    "!/**/(version|issue-helper)/**"
+    "/**",
+    "!/**/*.*",
+    "!/**/*__*",
+    "!/**/*__*/**",
+    "!/**/(version|issue-helper|iframe)/**"
   ]
 }

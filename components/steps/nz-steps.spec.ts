@@ -2,7 +2,7 @@ import { Component, TemplateRef, ViewChild } from '@angular/core';
 import { async, fakeAsync, tick, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { NzIconModule } from '../icon/nz-icon.module';
+import { NzIconTestModule } from '../icon/nz-icon-test.module';
 
 import { NzStepComponent } from './nz-step.component';
 import { NzStepsComponent } from './nz-steps.component';
@@ -11,7 +11,7 @@ import { NzStepsModule } from './nz-steps.module';
 describe('steps', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports     : [ NzStepsModule, NzIconModule ],
+      imports     : [ NzStepsModule, NzIconTestModule ],
       declarations: [ NzTestOuterStepsComponent, NzTestInnerStepStringComponent, NzTestInnerStepTemplateComponent, NzTestStepForComponent ]
     });
     TestBed.compileComponents();
@@ -163,12 +163,10 @@ describe('steps', () => {
   describe('inner step string', () => {
     let fixture;
     let testComponent;
-    let outStep;
     let innerSteps;
     beforeEach(() => {
       fixture = TestBed.createComponent(NzTestInnerStepStringComponent);
       testComponent = fixture.debugElement.componentInstance;
-      outStep = fixture.debugElement.query(By.directive(NzStepsComponent));
       innerSteps = fixture.debugElement.queryAll(By.directive(NzStepComponent));
     });
     it('should status display correct', () => {
@@ -203,13 +201,9 @@ describe('steps', () => {
   });
   describe('inner step template', () => {
     let fixture;
-    let testComponent;
-    let outStep;
     let innerSteps;
     beforeEach(() => {
       fixture = TestBed.createComponent(NzTestInnerStepTemplateComponent);
-      testComponent = fixture.debugElement.componentInstance;
-      outStep = fixture.debugElement.query(By.directive(NzStepsComponent));
       innerSteps = fixture.debugElement.queryAll(By.directive(NzStepComponent));
     });
     it('should title display correct', () => {

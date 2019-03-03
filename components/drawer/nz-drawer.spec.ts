@@ -1,13 +1,10 @@
-import {
-  Component, Input,
-  TemplateRef,
-  ViewChild
-} from '@angular/core';
+import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
 
-import { async, fakeAsync, flush, inject, tick, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, fakeAsync, inject, tick, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { NzDrawerRef } from './nz-drawer-ref';
 import { NzDrawerComponent } from './nz-drawer.component';
 import { NzDrawerModule } from './nz-drawer.module';
@@ -18,10 +15,11 @@ describe('NzDrawerComponent', () => {
   let fixture: ComponentFixture<NzTestDrawerComponent>;
   let overlayContainer: OverlayContainer;
   let overlayContainerElement: HTMLElement;
+  let forceScrollElement: HTMLElement;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports     : [ NzDrawerModule ],
+      imports     : [ NzDrawerModule, NoopAnimationsModule ],
       declarations: [ NzTestDrawerComponent ]
     })
     .compileComponents();
@@ -36,12 +34,19 @@ describe('NzDrawerComponent', () => {
   beforeEach(inject([ OverlayContainer ], (oc: OverlayContainer) => {
     overlayContainer = oc;
     overlayContainerElement = oc.getContainerElement();
+    forceScrollElement = document.createElement('div');
+    document.body.appendChild(forceScrollElement);
+    forceScrollElement.style.width = '100px';
+    forceScrollElement.style.height = '3000px';
+    forceScrollElement.style.background = 'rebeccapurple';
   }));
 
-  afterEach(() => {
+  afterEach(fakeAsync(() => {
     component.close();
+    document.body.removeChild(forceScrollElement);
+    window.scroll(0, 0);
     overlayContainer.ngOnDestroy();
-  });
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -64,15 +69,17 @@ describe('NzDrawerComponent', () => {
     expect(component.drawerComponent.nzVisible).toBe(false);
   });
 
-  it('should set body overflow', fakeAsync(() => {
+  it('should block scroll', fakeAsync(() => {
+    expect(document.documentElement.classList).not.toContain('cdk-global-scrollblock');
     component.open();
+    tick(300);
     fixture.detectChanges();
-    expect(document.body.style.overflow).toBe('hidden');
+    expect(document.documentElement.classList).toContain('cdk-global-scrollblock');
     component.close();
     fixture.detectChanges();
     tick(300);
     fixture.detectChanges();
-    expect(document.body.style.overflow).toBe('');
+    expect(document.documentElement.classList).not.toContain('cdk-global-scrollblock');
   }));
 
   it('should hied close button', () => {

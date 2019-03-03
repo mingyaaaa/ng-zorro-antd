@@ -8,7 +8,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Subject } from 'rxjs';
 
 import { dispatchFakeEvent } from '../core/testing';
-import { NzIconModule } from '../icon/nz-icon.module';
+import { NzIconTestModule } from '../icon/nz-icon-test.module';
 
 import { NzDemoMenuHorizontalComponent } from './demo/horizontal';
 import { NzDemoMenuInlineComponent } from './demo/inline';
@@ -28,7 +28,7 @@ describe('menu', () => {
   beforeEach(async(() => {
     const dir = 'ltr';
     TestBed.configureTestingModule({
-      imports     : [ NzMenuModule, NoopAnimationsModule, NoopAnimationsModule, NzIconModule ],
+      imports     : [ NzMenuModule, NoopAnimationsModule, NoopAnimationsModule, NzIconTestModule ],
       declarations: [ NzDemoMenuHorizontalComponent, NzDemoMenuInlineComponent, NzDemoMenuInlineCollapsedComponent, NzDemoMenuSiderCurrentComponent, NzDemoMenuThemeComponent, NzDemoMenuSwitchModeComponent, NzTestMenuHorizontalComponent, NzTestMenuInlineComponent, NzDemoMenuNgForComponent ],
       schemas     : [ NO_ERRORS_SCHEMA ],
       providers   : [
@@ -52,13 +52,11 @@ describe('menu', () => {
   describe('demo', () => {
     describe('horizontal', () => {
       let fixture;
-      let testComponent;
       let items;
       let submenu;
       let menu;
       beforeEach(() => {
         fixture = TestBed.createComponent(NzDemoMenuHorizontalComponent);
-        testComponent = fixture.debugElement.componentInstance;
         items = fixture.debugElement.queryAll(By.directive(NzMenuItemDirective));
         submenu = fixture.debugElement.query(By.directive(NzSubMenuComponent));
         menu = fixture.debugElement.query(By.directive(NzMenuDirective));
@@ -72,11 +70,13 @@ describe('menu', () => {
         expect(menu.nativeElement.className).toBe('ant-menu ant-menu-root ant-menu-light ant-menu-horizontal');
       });
       it('should menu item select', () => {
+        fixture.detectChanges();
         items[ 0 ].nativeElement.click();
         fixture.detectChanges();
         expect(items[ 0 ].nativeElement.classList.contains('ant-menu-item-selected')).toBe(true);
       });
       it('should menu disabled work', () => {
+        fixture.detectChanges();
         items[ 1 ].nativeElement.click();
         fixture.detectChanges();
         expect(items[ 0 ].nativeElement.classList.contains('ant-menu-item-selected')).toBe(false);
@@ -84,13 +84,11 @@ describe('menu', () => {
     });
     describe('inline', () => {
       let fixture;
-      let testComponent;
       let items;
       let submenus;
       let menu;
       beforeEach(() => {
         fixture = TestBed.createComponent(NzDemoMenuInlineComponent);
-        testComponent = fixture.debugElement.componentInstance;
         items = fixture.debugElement.queryAll(By.directive(NzMenuItemDirective));
         menu = fixture.debugElement.query(By.directive(NzMenuDirective));
         submenus = fixture.debugElement.queryAll(By.directive(NzSubMenuComponent));
@@ -128,13 +126,11 @@ describe('menu', () => {
     describe('inline-collapsed', () => {
       let fixture;
       let testComponent;
-      let items;
       let submenus;
       let menu;
       beforeEach(() => {
         fixture = TestBed.createComponent(NzDemoMenuInlineCollapsedComponent);
         testComponent = fixture.debugElement.componentInstance;
-        items = fixture.debugElement.queryAll(By.directive(NzMenuItemDirective));
         submenus = fixture.debugElement.queryAll(By.directive(NzSubMenuComponent));
         menu = fixture.debugElement.query(By.directive(NzMenuDirective));
       });
@@ -171,16 +167,10 @@ describe('menu', () => {
     });
     describe('slider-current', () => {
       let fixture;
-      let testComponent;
-      let items;
       let submenus;
-      let menu;
       beforeEach(() => {
         fixture = TestBed.createComponent(NzDemoMenuSiderCurrentComponent);
-        testComponent = fixture.debugElement.componentInstance;
-        items = fixture.debugElement.queryAll(By.directive(NzMenuItemDirective));
         submenus = fixture.debugElement.queryAll(By.directive(NzSubMenuComponent));
-        menu = fixture.debugElement.query(By.directive(NzMenuDirective));
       });
       it('should collapsed self work', fakeAsync(() => {
         fixture.detectChanges();
@@ -217,14 +207,10 @@ describe('menu', () => {
     describe('theme', () => {
       let fixture;
       let testComponent;
-      let items;
-      let submenus;
       let menu;
       beforeEach(() => {
         fixture = TestBed.createComponent(NzDemoMenuThemeComponent);
         testComponent = fixture.debugElement.componentInstance;
-        items = fixture.debugElement.queryAll(By.directive(NzMenuItemDirective));
-        submenus = fixture.debugElement.queryAll(By.directive(NzSubMenuComponent));
         menu = fixture.debugElement.query(By.directive(NzMenuDirective));
       });
       it('should className correct', () => {
@@ -232,19 +218,17 @@ describe('menu', () => {
         expect(menu.nativeElement.className).toBe('ant-menu ant-menu-root ant-menu-dark ant-menu-inline');
         testComponent.theme = false;
         fixture.detectChanges();
-        expect(menu.nativeElement.className).toBe('ant-menu ant-menu-root ant-menu-inline ant-menu-light');
+        expect(menu.nativeElement.className).toBe('ant-menu ant-menu-root ant-menu-light ant-menu-inline');
       });
     });
     describe('swich-mode', () => {
       let fixture;
       let testComponent;
-      let items;
       let submenus;
       let menu;
       beforeEach(() => {
         fixture = TestBed.createComponent(NzDemoMenuSwitchModeComponent);
         testComponent = fixture.debugElement.componentInstance;
-        items = fixture.debugElement.queryAll(By.directive(NzMenuItemDirective));
         submenus = fixture.debugElement.queryAll(By.directive(NzSubMenuComponent));
         menu = fixture.debugElement.query(By.directive(NzMenuDirective));
       });
@@ -282,7 +266,7 @@ describe('menu', () => {
         const mouseenterCallback = jasmine.createSpy('mouseenter callback');
         const subs = testComponent.subs.toArray();
         const title = submenu.nativeElement.querySelector('.ant-menu-submenu-title');
-        subs[ 0 ].$mouseSubject.subscribe(mouseenterCallback);
+        subs[ 0 ].nzSubmenuService.mouseEnterLeave$.subscribe(mouseenterCallback);
         dispatchFakeEvent(title, 'mouseenter');
         fixture.detectChanges();
         expect(mouseenterCallback).toHaveBeenCalledWith(true);
@@ -293,7 +277,7 @@ describe('menu', () => {
         const mouseleaveCallback = jasmine.createSpy('mouseleave callback');
         const subs = testComponent.subs.toArray();
         const title = submenu.nativeElement.querySelector('.ant-menu-submenu-title');
-        subs[ 0 ].$mouseSubject.subscribe(mouseleaveCallback);
+        subs[ 0 ].nzSubmenuService.mouseEnterLeave$.subscribe(mouseleaveCallback);
         dispatchFakeEvent(title, 'mouseleave');
         fixture.detectChanges();
         expect(mouseleaveCallback).toHaveBeenCalledWith(false);
@@ -304,12 +288,12 @@ describe('menu', () => {
         fixture.detectChanges();
         const nestedCallback = jasmine.createSpy('nested callback');
         const subs = testComponent.subs.toArray();
-        subs[ 0 ].$subOpen.subscribe(nestedCallback);
+        subs[ 0 ].nzSubmenuService.subMenuOpen$.subscribe(nestedCallback);
         subs[ 1 ].nzOpen = true;
-        subs[ 1 ].handleOpenEvent(false);
+        subs[ 1 ].nzSubmenuService.open$.next(false);
         fixture.detectChanges();
         expect(nestedCallback).toHaveBeenCalledWith(false);
-        expect(nestedCallback).toHaveBeenCalledTimes(2);
+        expect(nestedCallback).toHaveBeenCalledTimes(1);
       });
       it('should nested submenu disabled work', () => {
         testComponent.open = true;
@@ -317,9 +301,9 @@ describe('menu', () => {
         fixture.detectChanges();
         const nestedCallback = jasmine.createSpy('nested callback');
         const subs = testComponent.subs.toArray();
-        subs[ 0 ].$subOpen.subscribe(nestedCallback);
+        subs[ 0 ].nzSubmenuService.subMenuOpen$.subscribe(nestedCallback);
         subs[ 1 ].nzOpen = true;
-        subs[ 1 ].handleOpenEvent(false);
+        subs[ 1 ].nzSubmenuService.open$.next(false);
         fixture.detectChanges();
         expect(nestedCallback).toHaveBeenCalledTimes(1);
       });
@@ -330,7 +314,7 @@ describe('menu', () => {
         const subs = testComponent.subs.toArray();
         subs[ 1 ].nzOpen = true;
         fixture.detectChanges();
-        subs[ 1 ].$mouseSubject.subscribe(nestedCallback);
+        subs[ 1 ].nzSubmenuService.mouseEnterLeave$.subscribe(nestedCallback);
         testComponent.menuitem.nativeElement.click();
         fixture.detectChanges();
         expect(nestedCallback).toHaveBeenCalledWith(false);
@@ -341,7 +325,7 @@ describe('menu', () => {
         fixture.detectChanges();
         const nestedCallback = jasmine.createSpy('nested callback');
         const subs = testComponent.subs.toArray();
-        subs[ 1 ].$mouseSubject.subscribe(nestedCallback);
+        subs[ 1 ].nzSubmenuService.mouseEnterLeave$.subscribe(nestedCallback);
         subs[ 1 ].nzOpen = true;
         testComponent.disableditem.nativeElement.click();
         fixture.detectChanges();

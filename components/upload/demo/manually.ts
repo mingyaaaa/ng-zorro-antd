@@ -25,7 +25,7 @@ export class NzDemoUploadManuallyComponent {
   constructor(private http: HttpClient, private msg: NzMessageService) {}
 
   beforeUpload = (file: UploadFile): boolean => {
-    this.fileList.push(file);
+    this.fileList = this.fileList.concat(file);
     return false;
   }
 
@@ -44,11 +44,12 @@ export class NzDemoUploadManuallyComponent {
       .request(req)
       .pipe(filter(e => e instanceof HttpResponse))
       .subscribe(
-        (event: {}) => {
+        () => {
           this.uploading = false;
+          this.fileList = [];
           this.msg.success('upload successfully.');
         },
-        err => {
+        () => {
           this.uploading = false;
           this.msg.error('upload failed.');
         }
