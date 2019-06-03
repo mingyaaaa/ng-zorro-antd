@@ -1,5 +1,15 @@
+/**
+ * @license
+ * Copyright Alibaba.com All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/LICENSE
+ */
+
 // tslint:disable:no-any prefer-method-signature
 import { Observable, Subscription } from 'rxjs';
+
+import { IndexableObject } from 'ng-zorro-antd/core';
 
 /** 状态 */
 export type UploadFileStatus = 'error' | 'success' | 'done' | 'uploading' | 'removed';
@@ -28,7 +38,7 @@ export interface UploadFile {
   linkProps?: { download: string };
   type: string;
 
-  [ key: string ]: any;
+  [key: string]: any;
 }
 
 export interface UploadChangeParam {
@@ -73,9 +83,9 @@ export interface UploadFilter {
 export interface UploadXHRArgs {
   action?: string;
   name?: string;
-  headers?: {};
+  headers?: IndexableObject;
   file: UploadFile;
-  data?: {};
+  data?: IndexableObject;
   withCredentials?: boolean;
   onProgress?: (e: any, file: UploadFile) => void;
   onSuccess?: (ret: any, file: UploadFile, xhr: any) => void;

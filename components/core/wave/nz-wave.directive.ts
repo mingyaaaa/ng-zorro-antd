@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Alibaba.com All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/LICENSE
+ */
+
 import {
   Directive,
   ElementRef,
@@ -30,7 +38,8 @@ export function NZ_WAVE_GLOBAL_CONFIG_FACTORY(): NzWaveConfig {
 }
 
 @Directive({
-  selector: '[nz-wave]'
+  selector: '[nz-wave]',
+  exportAs: 'nzWave'
 })
 export class NzWaveDirective implements OnInit, OnDestroy {
   @Input() nzWaveExtraNode = false;
@@ -38,10 +47,12 @@ export class NzWaveDirective implements OnInit, OnDestroy {
   private waveRenderer: NzWaveRenderer;
   private waveDisabled: boolean = false;
 
-  constructor(private ngZone: NgZone,
-              private elementRef: ElementRef,
-              @Optional() @Inject(NZ_WAVE_GLOBAL_CONFIG) config: NzWaveConfig,
-              @Optional() @Inject(ANIMATION_MODULE_TYPE) private animationType: string) {
+  constructor(
+    private ngZone: NgZone,
+    private elementRef: ElementRef,
+    @Optional() @Inject(NZ_WAVE_GLOBAL_CONFIG) config: NzWaveConfig,
+    @Optional() @Inject(ANIMATION_MODULE_TYPE) private animationType: string
+  ) {
     if (config && typeof config.disabled === 'boolean') {
       this.waveDisabled = config.disabled;
     }

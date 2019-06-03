@@ -1,11 +1,7 @@
 ---
-order: 8
+order: 9
 title: FAQ
 ---
-
-### Why individually importing is not supported?
-
-In fact, from the first version of `ng-zorro-antd`, all its code is written in TypeScript. Tree Shaking strategy is used to reduce the size of your bundle and unused modules would not be bundled. Consequently, individually importing is unnecessary.
 
 ### Why some features are not supported?
 
@@ -13,7 +9,7 @@ In fact, from the first version of `ng-zorro-antd`, all its code is written in T
 
 ### The bundle is too big in size
 
-Please make sure you use `ng build --prod` correctly to compile. If other third-party component kits other than `ng-zorro-antd` are imported, you could generate a sourcemap file using this command `ng build --prod --sourcemaps` to check every dependency's bundled size. You can check [this link](https://angular.io/guide/deployment#inspect-the-bundles) for further instructions.
+Please make sure you use `ng build --prod` correctly to compile. If other third-party component kits other than `ng-zorro-antd` are imported, you could generate a sourcemap file using this command `ng build --prod --sourceMap=true` to check every dependency's bundled size. You can check [this link](https://angular.io/guide/deployment#inspect-the-bundles) for further instructions.
 
 ###  Browser compatibility
 

@@ -1,7 +1,7 @@
 ---
 category: Components
 cols: 1
-type: Data Display
+type: 数据展示
 title: Table
 subtitle: 表格
 ---
@@ -56,6 +56,14 @@ Table 组件同时具备了易用性和高度可定制性
 
 ## API
 
+### 单独引入此组件
+
+想要了解更多关于单独引入组件的内容，可以在[快速上手](/docs/getting-started/zh#单独引入某个组件)页面进行查看。
+
+```ts
+import { NzTableModule } from 'ng-zorro-antd';
+```
+
 ### nz-table
 
 | 参数 | 说明 | 类型 | 默认值 |
@@ -71,6 +79,7 @@ Table 组件同时具备了易用性和高度可定制性
 | `[nzWidthConfig]` | 表头分组时指定每列宽度，与 `th` 的 `nzWidth` 不可混用 | `string[]` | - |
 | `[nzSize]` | 正常或迷你类型 | `'middle'｜'small'｜'default'` | `'default'` |
 | `[nzLoading]` | 页面是否加载中 | `boolean` | `false` |
+| `[nzLoadingIndicator]` | 加载指示符 | `TemplateRef<void>` | - |
 | `[nzLoadingDelay]` | 延迟显示加载效果的时间（防止闪烁） | `number` | `0` |
 | `[nzScroll]` | 横向或纵向支持滚动，也可用于指定滚动区域的宽高度：`{ x: "300px", y: "300px" }` | `object` | - |
 | `[nzTitle]` | 表格标题 | `string｜TemplateRef<void>` | - |
@@ -87,7 +96,7 @@ Table 组件同时具备了易用性和高度可定制性
 | `[nzVirtualItemSize]` | 虚拟滚动时每一列的高度，与 [cdk itemSize](https://material.angular.io/cdk/scrolling/api) 相同 | `number` | `0` |
 | `[nzVirtualMaxBufferPx]` | 缓冲区最大像素高度，与 [cdk maxBufferPx](https://material.angular.io/cdk/scrolling/api) 相同 | `number` | `200` |
 | `[nzVirtualMinBufferPx]` | 缓冲区最小像素高度，低于该值时将加载新结构，与 [cdk minBufferPx](https://material.angular.io/cdk/scrolling/api) 相同 | `number` | `100` |
-| `(nzPageIndexChange)` | 当前页码改版时的回调函数 | `EventEmitter<number>` | - |
+| `(nzPageIndexChange)` | 当前页码改变时的回调函数 | `EventEmitter<number>` | - |
 | `(nzPageSizeChange)` | 页数改变时的回调函数 | `EventEmitter<number>` | - |
 | `(nzCurrentPageDataChange)` | 当前页面展示数据改变的回调函数 | `EventEmitter<any[]>` | - |
 

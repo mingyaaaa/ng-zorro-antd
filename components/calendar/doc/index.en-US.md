@@ -33,7 +33,15 @@ registerLocaleData(en);
   <div *nzDateCell>Foo</div>
 </nz-calendar>
 <!-- Passing TemplateRef -->
-<ng-template #dateCellTpl>Bar</ng-template>
+<ng-template #dateCellTpl let-date><span>{{ date | date:'d'}}</span></ng-template>
+```
+
+### Import this Component Individually
+
+You can get more detail [here](/docs/getting-started/en#import-a-component-individually).
+
+```ts
+import { NzCalendarModule } from 'ng-zorro-antd';
 ```
 
 ### nz-calendar
