@@ -24,6 +24,7 @@
   (positionChange)="onPositionChange($event)">
   <div class="ant-select-dropdown ant-select-tree-dropdown"
     [@slideMotion]="nzOpen ? dropDownPosition : 'void'"
+    [@.disabled]="noAnimation?.nzNoAnimation"
     [nzNoAnimation]="noAnimation?.nzNoAnimation"
     [class.ant-select-dropdown--single]="!nzMultiple"
     [class.ant-select-dropdown--multiple]="nzMultiple"
@@ -38,6 +39,7 @@
       [nzData]="nzNodes"
       [nzMultiple]="nzMultiple"
       [nzSearchValue]="inputValue"
+      [nzHideUnMatched]="nzHideUnMatched"
       [nzShowIcon]="nzShowIcon"
       [nzCheckable]="nzCheckable"
       [nzAsyncData]="nzAsyncData"
@@ -45,10 +47,11 @@
       [nzShowLine]="nzShowLine"
       [nzExpandedIcon]="nzExpandedIcon"
       [nzExpandAll]="nzDefaultExpandAll"
-      [nzExpandedKeys]="nzDefaultExpandedKeys"
+      [nzExpandedKeys]="expandedKeys"
       [nzCheckedKeys]="nzCheckable ? value : []"
       [nzSelectedKeys]="!nzCheckable ? value : []"
-      [nzTreeTemplate]="nzTreeTemplate"
+      [nzTreeTemplate]="treeTemplate"
+      [nzCheckStrictly]="nzCheckStrictly"
       (nzExpandChange)="onExpandedKeysChange($event)"
       (nzClick)="nzTreeClick.emit($event)"
       (nzCheckedKeysChange)="updateSelectedNodes()"
@@ -108,6 +111,7 @@
       <ng-container *ngFor="let node of selectedNodes | slice: 0 : nzMaxTagCount; trackBy:trackValue">
         <li
           [@zoomMotion]
+          [@.disabled]="noAnimation?.nzNoAnimation"
           [nzNoAnimation]="noAnimation?.nzNoAnimation"
           [attr.title]="nzDisplayWith(node)"
           [class.ant-select-selection__choice__disabled]="node.isDisabled"
@@ -115,7 +119,7 @@
                <span *ngIf="!node.isDisabled" class="ant-select-selection__choice__remove"
                  (mousedown)="$event.preventDefault()"
                  (click)="removeSelected(node, true, $event)">
-                 <i nz-icon type="close" class="ant-select-remove-icon"></i>
+                 <i nz-icon nzType="close" class="ant-select-remove-icon"></i>
                </span>
           <span class="ant-select-selection__choice__content">{{ nzDisplayWith(node) }}</span>
         </li>
@@ -143,9 +147,9 @@
   <span *ngIf="nzAllowClear" class="ant-select-selection__clear"
     (mousedown)="$event.preventDefault()"
     (click)="onClearSelection($event)">
-    <i nz-icon type="close-circle" class="ant-select-clear-icon" theme="fill"></i>
+    <i nz-icon nzType="close-circle" class="ant-select-clear-icon" nzTheme="fill"></i>
   </span>
   <span *ngIf="!isMultiple" class="ant-select-arrow">
-    <i nz-icon type="down" class="ant-select-arrow-icon"></i>
+    <i nz-icon nzType="down" class="ant-select-arrow-icon"></i>
   </span>
 </div>

@@ -12,17 +12,15 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewEncapsulation
 } from '@angular/core';
 
-import { FunctionProp } from 'ng-zorro-antd/core';
+import { CandyDate, FunctionProp } from 'ng-zorro-antd/core';
 import { NzCalendarI18nInterface } from 'ng-zorro-antd/i18n';
 import { DisabledDateFn, PanelMode } from '../../standard-types';
-import { CandyDate } from '../candy-date/candy-date';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -32,7 +30,7 @@ import { CandyDate } from '../candy-date/candy-date';
   exportAs: 'innerPopup',
   templateUrl: 'inner-popup.component.html'
 })
-export class InnerPopupComponent implements OnInit, OnChanges {
+export class InnerPopupComponent implements OnChanges {
   @Input() showWeek: boolean;
 
   @Input() locale: NzCalendarI18nInterface;
@@ -59,8 +57,6 @@ export class InnerPopupComponent implements OnInit, OnChanges {
   prefixCls: string = 'ant-calendar';
 
   constructor() {}
-
-  ngOnInit(): void {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.value && !this.value) {

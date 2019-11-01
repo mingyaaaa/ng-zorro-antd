@@ -20,16 +20,13 @@ import {
   ElementRef,
   EventEmitter,
   Input,
-  OnInit,
   Output,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 
-import { slideMotion } from 'ng-zorro-antd/core';
+import { slideMotion, CandyDate } from 'ng-zorro-antd/core';
 import { DateHelperService } from 'ng-zorro-antd/i18n';
-
-import { CandyDate } from './lib/candy-date/candy-date';
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -39,7 +36,7 @@ import { CandyDate } from './lib/candy-date/candy-date';
   animations: [slideMotion],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NzPickerComponent implements OnInit, AfterViewInit {
+export class NzPickerComponent implements AfterViewInit {
   @Input() noAnimation: boolean = false;
   @Input() isRange: boolean = false;
   @Input() open: boolean | undefined = undefined;
@@ -55,9 +52,9 @@ export class NzPickerComponent implements OnInit, AfterViewInit {
   @Output() readonly valueChange = new EventEmitter<CandyDate | CandyDate[] | null>();
   @Output() readonly openChange = new EventEmitter<boolean>(); // Emitted when overlay's open state change
 
-  @ViewChild('origin') origin: CdkOverlayOrigin;
-  @ViewChild(CdkConnectedOverlay) cdkConnectedOverlay: CdkConnectedOverlay;
-  @ViewChild('pickerInput') pickerInput: ElementRef;
+  @ViewChild('origin', { static: false }) origin: CdkOverlayOrigin;
+  @ViewChild(CdkConnectedOverlay, { static: false }) cdkConnectedOverlay: CdkConnectedOverlay;
+  @ViewChild('pickerInput', { static: false }) pickerInput: ElementRef;
 
   prefixCls = 'ant-calendar';
   animationOpenState = false;
@@ -103,18 +100,20 @@ export class NzPickerComponent implements OnInit, AfterViewInit {
 
   constructor(private dateHelper: DateHelperService, private changeDetector: ChangeDetectorRef) {}
 
-  ngOnInit(): void {}
-
   ngAfterViewInit(): void {
     if (this.autoFocus) {
-      if (this.isRange) {
-        const firstInput = (this.pickerInput.nativeElement as HTMLElement).querySelector(
-          'input:first-child'
-        ) as HTMLInputElement;
-        firstInput.focus(); // Focus on the first input
-      } else {
-        this.pickerInput.nativeElement.focus();
-      }
+      this.focus();
+    }
+  }
+
+  focus(): void {
+    if (this.isRange) {
+      const firstInput = (this.pickerInput.nativeElement as HTMLElement).querySelector(
+        'input:first-child'
+      ) as HTMLInputElement;
+      firstInput.focus(); // Focus on the first input
+    } else {
+      this.pickerInput.nativeElement.focus();
     }
   }
 
@@ -135,6 +134,7 @@ export class NzPickerComponent implements OnInit, AfterViewInit {
     if (this.realOpenState) {
       this.overlayOpen = false;
       this.openChange.emit(this.overlayOpen);
+      this.focus();
     }
   }
 

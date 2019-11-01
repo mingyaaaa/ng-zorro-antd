@@ -1,12 +1,14 @@
 <ng-template #renderItemTemplate let-type let-page="page">
-  <a class="ant-pagination-item-link" *ngIf="type==='pre'"><i nz-icon type="left"></i></a>
-  <a class="ant-pagination-item-link" *ngIf="type==='next'"><i nz-icon type="right"></i></a>
+  <a class="ant-pagination-item-link" *ngIf="type==='pre'"><i nz-icon nzType="left"></i></a>
+  <a class="ant-pagination-item-link" *ngIf="type==='next'"><i nz-icon nzType="right"></i></a>
   <a *ngIf="type=='page'">{{ page }}</a>
 </ng-template>
 <ng-template #colGroupTemplate>
   <colgroup>
     <col [style.width]="width" [style.minWidth]="width" *ngFor="let width of nzWidthConfig">
-    <col [style.width]="th.nzWidth" [style.minWidth]="th.nzWidth" *ngFor="let th of listOfNzThComponent">
+    <ng-container *ngIf="!nzWidthConfig.length">
+      <col [style.width]="th.nzWidth" [style.minWidth]="th.nzWidth" *ngFor="let th of listOfNzThComponent">
+    </ng-container>
   </colgroup>
 </ng-template>
 <ng-template #headerTemplate>
@@ -19,7 +21,7 @@
   <div #tableHeaderElement
     *ngIf="nzScroll.y"
     [ngStyle]="headerBottomStyle"
-    class="ant-table-header">
+    class="ant-table-header ant-table-hide-scrollbar">
     <table [class.ant-table-fixed]="nzScroll.x" [style.width]="nzScroll.x">
       <ng-template [ngTemplateOutlet]="colGroupTemplate"></ng-template>
       <thead class="ant-table-thead" *ngIf="nzScroll.y">
@@ -40,6 +42,7 @@
   <ng-template #scrollViewTpl>
     <cdk-virtual-scroll-viewport
       class="ant-table-body"
+      [hidden]="!data.length"
       [itemSize]="nzVirtualItemSize"
       [maxBufferPx]="nzVirtualMaxBufferPx"
       [minBufferPx]="nzVirtualMinBufferPx"
@@ -47,7 +50,7 @@
       <table [class.ant-table-fixed]="nzScroll.x" [style.width]="nzScroll.x">
         <ng-template [ngIf]="nzVirtualScroll" [ngTemplateOutlet]="headerTemplate"></ng-template>
         <tbody>
-          <ng-container *cdkVirtualFor="let item of data; let i = index">
+          <ng-container *cdkVirtualFor="let item of data; let i = index; trackBy:nzVirtualForTrackBy;">
             <ng-template [ngTemplateOutlet]="nzVirtualScrollDirective?.templateRef" [ngTemplateOutletContext]="{$implicit:item, index:i}"></ng-template>
           </ng-container>
         </tbody>
@@ -66,11 +69,11 @@
     [nzInTable]="true"
     [nzShowSizeChanger]="nzShowSizeChanger"
     [nzPageSizeOptions]="nzPageSizeOptions"
-    [nzItemRender]="nzItemRender"
+    [nzItemRender]="itemRender"
     [nzShowQuickJumper]="nzShowQuickJumper"
     [nzHideOnSinglePage]="nzHideOnSinglePage"
     [nzShowTotal]="nzShowTotal"
-    [nzSize]="(nzSize === 'middle' || nzSize=='small') ? 'small' : ''"
+    [nzSize]="nzSize === 'default' ? 'default' : 'small'"
     [nzPageSize]="nzPageSize"
     [nzTotal]="nzTotal"
     [nzSimple]="nzSimple"

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DebugElement } from '@angular/core';
-import { async, fakeAsync, tick, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, fakeAsync, inject, tick, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import {
   LeftOutline,
@@ -10,6 +10,8 @@ import {
   QuestionOutline,
   RightOutline
 } from '@ant-design/icons-angular/icons';
+
+import { NzConfigService } from 'ng-zorro-antd/core';
 
 import { NzIconDirective } from './nz-icon.directive';
 import { NzIconModule } from './nz-icon.module';
@@ -171,6 +173,9 @@ describe('nz icon', () => {
     }));
   });
 
+  /**
+   * @deprecated Would be removed in 9.0.0.
+   */
   describe('old api', () => {
     let fixture: ComponentFixture<NzTestIconOldApiComponent>;
     let icons: DebugElement[];
@@ -187,6 +192,9 @@ describe('nz icon', () => {
     });
   });
 
+  /**
+   * @deprecated Would be removed in 9.0.0.
+   */
   describe('prefix', () => {
     let fixture: ComponentFixture<NzTestIconPrefixComponent>;
     let icons: DebugElement[];
@@ -205,6 +213,42 @@ describe('nz icon', () => {
   });
 });
 
+describe('nz config service', () => {
+  let fixture: ComponentFixture<NzTestIconExtensionsComponent>;
+  let nzConfigService: NzConfigService;
+  let icons: DebugElement[];
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [CommonModule, NzIconModule],
+      declarations: [NzTestIconExtensionsComponent],
+      providers: [
+        {
+          provide: NZ_ICONS,
+          useValue: [LeftOutline, RightOutline, QuestionOutline]
+        }
+      ]
+    });
+
+    fixture = TestBed.createComponent(NzTestIconExtensionsComponent);
+    fixture.detectChanges();
+    icons = fixture.debugElement.queryAll(By.directive(NzIconDirective));
+  });
+
+  beforeEach(inject([NzConfigService], (c: NzConfigService) => {
+    nzConfigService = c;
+  }));
+
+  it('should support config service', () => {
+    nzConfigService!.set('icon', { nzTwotoneColor: '234567' });
+    expect(icons[0].componentInstance._iconService.twoToneColor.primaryColor).not.toBe('234567');
+    expect(icons[0].componentInstance._iconService.twoToneColor.primaryColor).toBe('#1890ff');
+  });
+});
+
+/**
+ * @deprecated This API is not going to be provided in 9.0.0.
+ */
 describe('nz icon twotone color injection', () => {
   let fixture: ComponentFixture<NzTestIconExtensionsComponent>;
   let icons: DebugElement[];
@@ -259,7 +303,6 @@ describe('nz icon twotone color injection', () => {
 });
 
 @Component({
-  selector: 'nz-test-icon-extensions',
   template: `
     <i nz-icon [nzType]="type" [nzTheme]="theme" [nzSpin]="spin" [nzRotate]="rotate"></i>
     <i nz-icon [nzType]="'loading'" [nzTheme]="theme"></i>
@@ -275,7 +318,6 @@ export class NzTestIconExtensionsComponent {
 }
 
 @Component({
-  selector: 'nz-test-icon-prefix',
   template: `
     <i nz-icon [nzType]="'question-circle'" [nzTheme]="'fill'"></i>
   `
@@ -283,7 +325,6 @@ export class NzTestIconExtensionsComponent {
 export class NzTestIconPrefixComponent {}
 
 @Component({
-  selector: 'nz-test-icon-custom',
   template: `
     <i nz-icon style="color: hotpink;">
       <svg>
@@ -297,7 +338,6 @@ export class NzTestIconPrefixComponent {}
 export class NzTestIconCustomComponent {}
 
 @Component({
-  selector: 'nz-test-icon-iconfont',
   template: `
     <i nz-icon [nzIconfont]="'icon-tuichu'"></i>
     <i nz-icon [nzIconfont]="'icon-facebook'"></i>
@@ -313,7 +353,6 @@ export class NzTestIconIconfontComponent {
 }
 
 @Component({
-  selector: 'nz-test-icon-old-api',
   template: `
     <i class="anticon anticon-question"></i>
     <i class="anticon anticon-verticle"></i>

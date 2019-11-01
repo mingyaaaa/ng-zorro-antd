@@ -18,8 +18,8 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 
-import { isNotNil, zoomBigMotion, NzNoAnimationDirective } from 'ng-zorro-antd/core';
-import { NzToolTipComponent } from 'ng-zorro-antd/tooltip';
+import { zoomBigMotion, NzNoAnimationDirective, NzTSType } from 'ng-zorro-antd/core';
+import { NzTooltipBaseComponentLegacy, NzToolTipComponent } from 'ng-zorro-antd/tooltip';
 
 @Component({
   selector: 'nz-popover',
@@ -28,6 +28,12 @@ import { NzToolTipComponent } from 'ng-zorro-antd/tooltip';
   templateUrl: './nz-popover.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
+  providers: [
+    {
+      provide: NzTooltipBaseComponentLegacy,
+      useExisting: NzPopoverComponent
+    }
+  ],
   preserveWhitespaces: false,
   styles: [
     `
@@ -40,18 +46,16 @@ import { NzToolTipComponent } from 'ng-zorro-antd/tooltip';
 export class NzPopoverComponent extends NzToolTipComponent {
   _prefix = 'ant-popover-placement';
 
-  /** Used to remove NzToolTipComponent @ContentChild('nzTemplate') */
-  @Input() @ContentChild('neverUsedTemplate') nzTitle: string | TemplateRef<void>;
-  @Input() @ContentChild('nzTemplate') nzContent: string | TemplateRef<void>;
+  /**
+   * Use `neverUsedTemplate` to force `nzTemplate` to be catched by `nzPopoverContent`.
+   */
+  @Input() nzTitle: NzTSType;
+  @ContentChild('neverUsedTemplate', { static: true }) nzTitleTemplate: TemplateRef<void>;
+
+  @Input() nzContent: NzTSType;
+  @ContentChild('nzTemplate', { static: true }) nzContentTemplate: TemplateRef<void>;
 
   constructor(cdr: ChangeDetectorRef, @Host() @Optional() public noAnimation?: NzNoAnimationDirective) {
     super(cdr, noAnimation);
-  }
-
-  protected isContentEmpty(): boolean {
-    const isTitleEmpty = this.nzTitle instanceof TemplateRef ? false : this.nzTitle === '' || !isNotNil(this.nzTitle);
-    const isContentEmpty =
-      this.nzContent instanceof TemplateRef ? false : this.nzContent === '' || !isNotNil(this.nzContent);
-    return isTitleEmpty && isContentEmpty;
   }
 }

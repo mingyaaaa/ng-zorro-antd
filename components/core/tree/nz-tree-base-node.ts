@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/LICENSE
  */
 
+import { warnDeprecation } from '../logger/logger';
 import { NzTreeNodeBaseComponent } from './nz-tree-base.definitions';
 import { NzTreeBaseService } from './nz-tree-base.service';
 
@@ -48,6 +49,7 @@ export class NzTreeNode {
   private _isHalfChecked: boolean;
   private _isSelected: boolean;
   private _isLoading: boolean;
+  canHide: boolean;
   isMatched: boolean;
 
   service: NzTreeBaseService | null;
@@ -148,7 +150,7 @@ export class NzTreeNode {
 
   set isLeaf(value: boolean) {
     this._isLeaf = value;
-    // this.update();
+    this.update();
   }
 
   get isChecked(): boolean {
@@ -167,9 +169,10 @@ export class NzTreeNode {
   }
 
   /**
-   * @deprecated Maybe removed in next major version, use isChecked instead
+   * @deprecated Maybe removed in next major version, use `isChecked` instead.
    */
   set isAllChecked(value: boolean) {
+    warnDeprecation(`'isAllChecked' is going to be removed in 9.0.0. Please use 'isChecked' instead.`);
     this._isAllChecked = value;
   }
 
@@ -246,9 +249,10 @@ export class NzTreeNode {
   }
 
   /**
-   * @deprecated Maybe removed in next major version, use isChecked instead
+   * @deprecated Maybe removed in next major version, use `isChecked` instead.
    */
   public setChecked(checked: boolean = false, halfChecked: boolean = false): void {
+    warnDeprecation(`'setChecked' is going to be removed in 9.0.0. Please use 'isChecked' instead.`);
     this.origin.checked = checked;
     this.isChecked = checked;
     this.isAllChecked = checked;
@@ -256,16 +260,18 @@ export class NzTreeNode {
   }
 
   /**
-   * @deprecated Maybe removed in next major version, use isExpanded instead
+   * @deprecated Maybe removed in next major version, use `isExpanded` instead.
    */
   public setExpanded(value: boolean): void {
+    warnDeprecation(`'setExpanded' is going to be removed in 9.0.0. Please use 'isExpanded' instead.`);
     this.isExpanded = value;
   }
 
   /**
-   * @deprecated Maybe removed in next major version, use isSelected instead
+   * @deprecated Maybe removed in next major version, use `isSelected` instead.
    */
   public setSelected(value: boolean): void {
+    warnDeprecation(`'setSelected' is going to be removed in 9.0.0. Please use 'isExpanded' isSelected.`);
     if (this.isDisabled) {
       return;
     }
@@ -281,7 +287,7 @@ export class NzTreeNode {
   }
 
   /**
-   * 支持按索引位置插入,叶子节点不可添加
+   * Support appending child nodes by position. Leaf node cannot be appended.
    */
   // tslint:disable-next-line:no-any
   public addChildren(children: any[], childPos: number = -1): void {

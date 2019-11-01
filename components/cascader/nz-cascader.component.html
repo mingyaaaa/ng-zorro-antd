@@ -11,7 +11,7 @@
       [class.ant-cascader-input-lg]="nzSize === 'large'"
       [class.ant-cascader-input-sm]="nzSize === 'small'"
       [attr.autoComplete]="'off'"
-      [attr.placeholder]="showPlaceholder ? nzPlaceHolder : null"
+      [attr.placeholder]="showPlaceholder ? (nzPlaceHolder || locale?.placeholder ) : null"
       [attr.autofocus]="nzAutoFocus ? 'autofocus' : null"
       [readonly]="!nzShowSearch"
       [disabled]="nzDisabled"
@@ -22,17 +22,17 @@
       (change)="$event.stopPropagation()">
     <i *ngIf="clearIconVisible"
       nz-icon
-      type="close-circle"
-      theme="fill"
+      nzType="close-circle"
+      nzTheme="fill"
       class="ant-cascader-picker-clear"
       (click)="clearSelection($event)"></i>
     <i *ngIf="nzShowArrow && !isLoading"
       nz-icon
-      type="down"
+      nzType="down"
       class="ant-cascader-picker-arrow"
       [class.ant-cascader-picker-arrow-expand]="menuVisible">
     </i>
-    <i *ngIf="isLoading" nz-icon type="loading" class="ant-cascader-picker-arrow"></i>
+    <i *ngIf="isLoading" nz-icon nzType="loading" class="ant-cascader-picker-arrow"></i>
     <span
       class="ant-cascader-picker-label"
       [class.ant-cascader-show-search]="!!nzShowSearch"
@@ -62,6 +62,7 @@
     [class.ant-cascader-menus-hidden]="!menuVisible"
     [ngClass]="menuCls"
     [ngStyle]="nzMenuStyle"
+    [@.disabled]="noAnimation?.nzNoAnimation"
     [nzNoAnimation]="noAnimation?.nzNoAnimation"
     [@slideMotion]="dropDownPosition"
     (mouseleave)="onTriggerMouseLeave($event)">
@@ -72,7 +73,9 @@
       <li
         nz-cascader-option
         *ngFor="let option of options"
+        [columnIndex]="i"
         [nzLabelProperty]="nzLabelProperty"
+        [optionTemplate]="nzOptionRender"
         [activated]="isOptionActivated(option, i)"
         [highlightText]="inSearchingMode ? inputValue : ''"
         [option]="option"

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { NzFormatEmitEvent } from 'ng-zorro-antd';
+import { Component } from '@angular/core';
+import { NzFormatEmitEvent } from 'ng-zorro-antd/core';
 
 @Component({
   selector: 'nz-demo-tree-line',
@@ -7,7 +7,7 @@ import { NzFormatEmitEvent } from 'ng-zorro-antd';
     <nz-tree [nzData]="nodes" nzShowLine (nzClick)="nzEvent($event)"> </nz-tree>
   `
 })
-export class NzDemoTreeLineComponent implements OnInit {
+export class NzDemoTreeLineComponent {
   nodes = [
     {
       title: 'parent 1',
@@ -41,6 +41,4 @@ export class NzDemoTreeLineComponent implements OnInit {
   nzEvent(event: NzFormatEmitEvent): void {
     console.log(event);
   }
-
-  ngOnInit(): void {}
 }

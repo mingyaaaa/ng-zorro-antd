@@ -1,10 +1,12 @@
-import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
-
-import { async, fakeAsync, inject, tick, ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { ESCAPE } from '@angular/cdk/keycodes';
 import { OverlayContainer } from '@angular/cdk/overlay';
+import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
+import { async, fakeAsync, inject, tick, ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
+import { dispatchKeyboardEvent } from 'ng-zorro-antd/core';
+
 import { NzDrawerRef } from './nz-drawer-ref';
 import { NzDrawerComponent } from './nz-drawer.component';
 import { NzDrawerModule } from './nz-drawer.module';
@@ -109,6 +111,27 @@ describe('NzDrawerComponent', () => {
     expect(overlayContainerElement.querySelector('.ant-drawer')!.classList.contains('ant-drawer-open')).toBe(true);
   });
 
+  it('should be closed when ESC keydown', () => {
+    component.open();
+    fixture.detectChanges();
+    expect(overlayContainerElement.querySelector('.ant-drawer')!.classList.contains('ant-drawer-open')).toBe(true);
+    dispatchKeyboardEvent(document.body, 'keydown', ESCAPE);
+    fixture.detectChanges();
+    expect(overlayContainerElement.querySelector('.ant-drawer')!.classList.contains('ant-drawer-open')).toBe(false);
+  });
+
+  it('should disabled ESC keydown', () => {
+    component.open();
+    component.drawerComponent.nzKeyboard = false;
+    fixture.detectChanges();
+    expect(overlayContainerElement.querySelector('.ant-drawer')!.classList.contains('ant-drawer-open')).toBe(true);
+    dispatchKeyboardEvent(document.body, 'keydown', ESCAPE);
+    fixture.detectChanges();
+    expect(overlayContainerElement.querySelector('.ant-drawer')!.classList.contains('ant-drawer-open')).toBe(true);
+    component.close();
+    fixture.detectChanges();
+  });
+
   it('should close when click mask', () => {
     component.maskClosable = true;
     component.open();
@@ -145,7 +168,7 @@ describe('NzDrawerComponent', () => {
     component.open();
     fixture.detectChanges();
     expect(overlayContainerElement.querySelector('.ant-drawer')!.classList.contains('ant-drawer-open')).toBe(true);
-    expect(overlayContainerElement.querySelector('.ant-drawer .ant-drawer-header')).toBe(null);
+    expect(overlayContainerElement.querySelector('.ant-drawer .ant-drawer-title')).toBe(null);
   });
 
   it('should support string title', () => {
@@ -472,7 +495,6 @@ describe('NzDrawerService', () => {
 });
 
 @Component({
-  selector: 'nz-test-drawer',
   template: `
     <button (click)="open()">Open</button>
     <ng-template #customTitle>
@@ -500,8 +522,7 @@ describe('NzDrawerService', () => {
       <p>Some contents...</p>
       <p>Some contents...</p>
     </nz-drawer>
-  `,
-  styles: []
+  `
 })
 class NzTestDrawerComponent {
   visible = false;
@@ -515,9 +536,9 @@ class NzTestDrawerComponent {
   placement = 'left';
   offsetX = 0;
   offsetY = 0;
-  @ViewChild('customTitle') templateTitle: TemplateRef<void>;
+  @ViewChild('customTitle', { static: false }) templateTitle: TemplateRef<void>;
 
-  @ViewChild(NzDrawerComponent) drawerComponent: NzDrawerComponent;
+  @ViewChild(NzDrawerComponent, { static: false }) drawerComponent: NzDrawerComponent;
 
   open(): void {
     this.visible = true;
@@ -529,7 +550,6 @@ class NzTestDrawerComponent {
 }
 
 @Component({
-  selector: 'nz-test-drawer-with-service',
   template: `
     <ng-template #drawerTemplate>
       <span>Template</span>
@@ -537,7 +557,10 @@ class NzTestDrawerComponent {
   `
 })
 class NzTestDrawerWithServiceComponent {
-  @ViewChild('drawerTemplate') drawerTemplate: TemplateRef<{ $implicit: number; drawerRef: NzDrawerRef }>;
+  @ViewChild('drawerTemplate', { static: false }) drawerTemplate: TemplateRef<{
+    $implicit: number;
+    drawerRef: NzDrawerRef;
+  }>;
   templateOpenSpy = jasmine.createSpy('template afterOpen spy');
   templateCloseSpy = jasmine.createSpy('template afterClose spy');
   templateDrawerRef: NzDrawerRef;
@@ -556,7 +579,6 @@ class NzTestDrawerWithServiceComponent {
 }
 
 @Component({
-  selector: 'nz-drawer-custom-component',
   template: `
     <div>
       <p>Custom Component</p>

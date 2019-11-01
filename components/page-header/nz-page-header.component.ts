@@ -14,12 +14,13 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewEncapsulation
 } from '@angular/core';
+
+import { Location } from '@angular/common';
 import { NzPageHeaderFooterDirective } from './nz-page-header-cells';
 
 @Component({
@@ -30,11 +31,22 @@ import { NzPageHeaderFooterDirective } from './nz-page-header-cells';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   host: {
-    class: 'ant-page-header',
+    class: 'ant-page-header ant-page-header-ghost',
     '[class.ant-page-header-has-footer]': 'nzPageHeaderFooter'
-  }
+  },
+  styles: [
+    `
+      .ant-page-header-back-button {
+        border: 0px;
+        background: transparent;
+        padding: 0px;
+        line-height: inherit;
+        display: inline-block;
+      }
+    `
+  ]
 })
-export class NzPageHeaderComponent implements OnInit, OnChanges {
+export class NzPageHeaderComponent implements OnChanges {
   isTemplateRefBackIcon = false;
   isStringBackIcon = false;
 
@@ -43,11 +55,11 @@ export class NzPageHeaderComponent implements OnInit, OnChanges {
   @Input() nzSubtitle: string | TemplateRef<void>;
   @Output() readonly nzBack = new EventEmitter<void>();
 
-  @ContentChild(NzPageHeaderFooterDirective) nzPageHeaderFooter: ElementRef<NzPageHeaderFooterDirective>;
+  @ContentChild(NzPageHeaderFooterDirective, { static: false }) nzPageHeaderFooter: ElementRef<
+    NzPageHeaderFooterDirective
+  >;
 
-  constructor() {}
-
-  ngOnInit(): void {}
+  constructor(private location: Location) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.hasOwnProperty('nzBackIcon')) {
@@ -57,6 +69,10 @@ export class NzPageHeaderComponent implements OnInit, OnChanges {
   }
 
   onBack(): void {
-    this.nzBack.emit();
+    if (this.nzBack.observers.length) {
+      this.nzBack.emit();
+    } else {
+      this.location.back();
+    }
   }
 }

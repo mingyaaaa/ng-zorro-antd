@@ -25,7 +25,15 @@ import {
 import { fromEvent, Subscription } from 'rxjs';
 import { distinctUntilChanged, throttleTime } from 'rxjs/operators';
 
-import { toNumber, InputBoolean, InputNumber, NzScrollService, NGStyleInterface } from 'ng-zorro-antd/core';
+import {
+  toNumber,
+  InputBoolean,
+  InputNumber,
+  NgStyleInterface,
+  NzConfigService,
+  NzScrollService,
+  WithConfig
+} from 'ng-zorro-antd/core';
 
 import { NzAnchorLinkComponent } from './nz-anchor-link.component';
 
@@ -34,6 +42,7 @@ interface Section {
   top: number;
 }
 
+const NZ_CONFIG_COMPONENT_NAME = 'anchor';
 const sharpMatcherRegx = /#([^#]+)$/;
 
 @Component({
@@ -45,13 +54,22 @@ const sharpMatcherRegx = /#([^#]+)$/;
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NzAnchorComponent implements OnDestroy, AfterViewInit {
-  @ViewChild('ink') private ink: ElementRef;
+  @ViewChild('ink', { static: false }) private ink: ElementRef;
 
   @Input() @InputBoolean() nzAffix = true;
-  @Input() @InputBoolean() nzShowInkInFixed = false;
-  @Input() @InputNumber() nzBounds: number = 5;
 
   @Input()
+  @WithConfig(NZ_CONFIG_COMPONENT_NAME, false)
+  @InputBoolean()
+  nzShowInkInFixed: boolean;
+
+  @Input()
+  @WithConfig(NZ_CONFIG_COMPONENT_NAME, 5)
+  @InputNumber()
+  nzBounds: number;
+
+  @Input()
+  @WithConfig<number>(NZ_CONFIG_COMPONENT_NAME)
   set nzOffsetTop(value: number) {
     this._offsetTop = toNumber(value, 0);
     this.wrapperStyle = {
@@ -75,7 +93,7 @@ export class NzAnchorComponent implements OnDestroy, AfterViewInit {
   @Output() readonly nzScroll = new EventEmitter<NzAnchorLinkComponent>();
 
   visible = false;
-  wrapperStyle: NGStyleInterface = { 'max-height': '100vh' };
+  wrapperStyle: NgStyleInterface = { 'max-height': '100vh' };
 
   private links: NzAnchorLinkComponent[] = [];
   private animating = false;
@@ -84,6 +102,7 @@ export class NzAnchorComponent implements OnDestroy, AfterViewInit {
   private destroyed = false;
 
   constructor(
+    public nzConfigService: NzConfigService,
     private scrollSrv: NzScrollService,
     /* tslint:disable-next-line:no-any */
     @Inject(DOCUMENT) private doc: any,
@@ -123,8 +142,8 @@ export class NzAnchorComponent implements OnDestroy, AfterViewInit {
         distinctUntilChanged()
       )
       .subscribe(() => this.handleScroll());
-    // 浏览器在刷新时保持滚动位置，会倒置在dom未渲染完成时计算不正确，因此延迟重新计算
-    // 与之相对应可能会引起组件移除后依然触发 `handleScroll` 的 `detectChanges`
+    // Browser would maintain the scrolling position when refreshing.
+    // So we have to delay calculation in avoid of getting a incorrect result.
     setTimeout(() => this.handleScroll());
   }
 

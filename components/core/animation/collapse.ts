@@ -12,9 +12,20 @@ import { AnimationCurves } from './animation-consts';
 export const collapseMotion: AnimationTriggerMetadata = trigger('collapseMotion', [
   state('expanded', style({ height: '*' })),
   state('collapsed', style({ height: 0, overflow: 'hidden' })),
-  state('hidden', style({ height: 0, display: 'none' })),
+  state('hidden', style({ height: 0, overflow: 'hidden', borderTopWidth: '0' })),
   transition('expanded => collapsed', animate(`150ms ${AnimationCurves.EASE_IN_OUT}`)),
   transition('expanded => hidden', animate(`150ms ${AnimationCurves.EASE_IN_OUT}`)),
   transition('collapsed => expanded', animate(`150ms ${AnimationCurves.EASE_IN_OUT}`)),
   transition('hidden => expanded', animate(`150ms ${AnimationCurves.EASE_IN_OUT}`))
+]);
+
+export const treeCollapseMotion: AnimationTriggerMetadata = trigger('treeCollapseMotion', [
+  transition(':leave', [
+    style({ overflow: 'hidden' }),
+    animate(`150ms ${AnimationCurves.EASE_IN_OUT}`, style({ height: 0 }))
+  ]),
+  transition(':enter', [
+    style({ overflow: 'hidden', height: 0 }),
+    animate(`150ms ${AnimationCurves.EASE_IN_OUT}`, style({ overflow: 'hidden', height: '*' }))
+  ])
 ]);

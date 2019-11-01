@@ -57,7 +57,7 @@ describe('time-picker-panel', () => {
       expect(testComponent.nzTimePickerPanelComponent.enabledColumns).toBe(2);
     });
     it('should default open value work', fakeAsync(() => {
-      testComponent.nzTimePickerPanelComponent.opened = true;
+      testComponent.opened = true;
       fixture.detectChanges();
       tick(1000);
       fixture.detectChanges();
@@ -285,7 +285,6 @@ describe('time-picker-panel', () => {
 });
 
 @Component({
-  selector: 'nz-test-time-panel',
   encapsulation: ViewEncapsulation.None,
   template: `
     <nz-time-picker-panel
@@ -295,23 +294,24 @@ describe('time-picker-panel', () => {
       [nzSecondStep]="secondStep"
       [nzMinuteStep]="minuteStep"
       [nzHourStep]="hourStep"
+      [opened]="opened"
     >
     </nz-time-picker-panel>
   `,
   styleUrls: ['../style/index.less', './style/index.less']
 })
 export class NzTestTimePanelComponent {
+  opened = false;
   secondStep = 1;
   minuteStep = 1;
   hourStep = 1;
-  @ViewChild(NzTimePickerPanelComponent) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
+  @ViewChild(NzTimePickerPanelComponent, { static: false }) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
   value: Date;
   openValue = new Date(0, 0, 0, 10, 11, 12);
   format: string | null = 'HH:mm:ss';
 }
 
 @Component({
-  selector: 'nz-test-time-panel-disabled',
   encapsulation: ViewEncapsulation.None,
   template: `
     <nz-time-picker-panel
@@ -337,7 +337,7 @@ export class NzTestTimePanelDisabledComponent {
   minuteStep = 1;
   hourStep = 1;
   hideDisabledOptions = false;
-  @ViewChild(NzTimePickerPanelComponent) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
+  @ViewChild(NzTimePickerPanelComponent, { static: false }) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
   value = new Date(0, 0, 0, 0, 0, 0);
   openValue = new Date(0, 0, 0, 10, 11, 12);
   format = 'HH:mm:ss';
@@ -363,7 +363,6 @@ export class NzTestTimePanelDisabledComponent {
   }
 }
 @Component({
-  selector: 'nz-test-12-hour-time-panel',
   encapsulation: ViewEncapsulation.None,
   template: `
     <nz-time-picker-panel
@@ -378,14 +377,13 @@ export class NzTestTimePanelDisabledComponent {
   styleUrls: ['../style/index.less', './style/index.less']
 })
 export class NzTest12HourTimePanelComponent {
-  @ViewChild(NzTimePickerPanelComponent) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
+  @ViewChild(NzTimePickerPanelComponent, { static: false }) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
   format = 'hh:mm:ss a';
   hourStep = 1;
   value: Date;
   openValue = new Date(0, 0, 0, 0, 0, 0);
 }
 @Component({
-  selector: 'nz-test-12-hour-time-panel',
   encapsulation: ViewEncapsulation.None,
   template: `
     <nz-time-picker-panel
@@ -401,7 +399,7 @@ export class NzTest12HourTimePanelComponent {
   styleUrls: ['../style/index.less', './style/index.less']
 })
 export class NzTest12HourTimePanelDisabeledComponent {
-  @ViewChild(NzTimePickerPanelComponent) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
+  @ViewChild(NzTimePickerPanelComponent, { static: false }) nzTimePickerPanelComponent: NzTimePickerPanelComponent;
   format = 'hh:mm:ss a';
   value = new Date(0, 0, 0, 1, 1, 1);
   disabledHours = (): number[] => [];

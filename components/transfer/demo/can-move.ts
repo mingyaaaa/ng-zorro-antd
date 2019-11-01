@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TransferCanMove, TransferItem } from 'ng-zorro-antd';
+import { TransferCanMove, TransferItem } from 'ng-zorro-antd/transfer';
 import { of, Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
@@ -16,7 +16,7 @@ import { delay } from 'rxjs/operators';
   `
 })
 export class NzDemoTransferCanMoveComponent implements OnInit {
-  list: Array<{ key: string; title: string; disabled: boolean; direction?: string }> = [];
+  list: TransferItem[] = [];
 
   ngOnInit(): void {
     for (let i = 0; i < 20; i++) {

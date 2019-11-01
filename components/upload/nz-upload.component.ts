@@ -46,12 +46,15 @@ import { NzUploadListComponent } from './nz-upload-list.component';
   templateUrl: './nz-upload.component.html',
   preserveWhitespaces: false,
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.ant-upload-picture-card-wrapper]': 'nzListType === "picture-card"'
+  }
 })
 export class NzUploadComponent implements OnInit, OnChanges, OnDestroy {
   private i18n$: Subscription;
-  @ViewChild('uploadComp') uploadComp: NzUploadBtnComponent;
-  @ViewChild('listComp') listComp: NzUploadListComponent;
+  @ViewChild('uploadComp', { static: false }) uploadComp: NzUploadBtnComponent;
+  @ViewChild('listComp', { static: false }) listComp: NzUploadListComponent;
   // tslint:disable-next-line:no-any
   locale: any = {};
 
@@ -244,7 +247,9 @@ export class NzUploadComponent implements OnInit, OnChanges, OnDestroy {
 
   private dragState: string;
 
-  fileDrop(e: DragEvent): void {
+  // skip safari bug
+  // tslint:disable-next-line:no-any
+  fileDrop(e: any): void {
     if (e.type === this.dragState) {
       return;
     }

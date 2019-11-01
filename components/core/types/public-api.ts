@@ -12,3 +12,5 @@ export * from './drop-down-position';
 export * from './indexable';
 export * from './ng-class';
 export * from './size';
+export * from './template';
+export * from './shape';

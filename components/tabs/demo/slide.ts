@@ -24,11 +24,10 @@ import { Component, OnInit } from '@angular/core';
         {{ tab.content }}
       </nz-tab>
     </nz-tabset>
-  `,
-  styles: []
+  `
 })
 export class NzDemoTabsSlideComponent implements OnInit {
-  tabs: any[] = [];
+  tabs: Array<{ name: string; content: string }> = [];
   nzTabPosition = 'top';
   selectedIndex = 0;
 
